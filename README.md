@@ -35,4 +35,13 @@ Add one or more of the following flags to enable certain features (ex `DEBUG=1 n
 For a list of available scripts and their usage run the command:
 `node bin/adash-data-collector --help`
 
-1. `collect`
+1. `notificator`
+2. `collect`
+3. `collect:browerstack`
+4. `collect:gitlab`
+5. `collect:bitrise`
+6. `collect:status`
+
+# Configuration
+
+Rename the file config.example.json to config.json and apply the configuration
