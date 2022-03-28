@@ -3,6 +3,7 @@
 To setup the project run the following commands
 
 - `yarn install`
+- `yarn build`
 
 # Develop
 
