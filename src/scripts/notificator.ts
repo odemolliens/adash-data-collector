@@ -7,11 +7,10 @@ import {
   simpleDb,
   simpleLogger,
   slack,
-  teams
+  teams,
 } from 'adash-ts-helper';
 import { getLastWeekDate, shorthash } from '../lib/utils';
 import { Config, Severity } from '../types/config';
-
 
 type Notification = {
   readonly createdAt: number;
@@ -38,9 +37,7 @@ const getDataFromFile = async (filename: string) => {
 
 const notifyMonitor = async () => {
   try {
-    for (const [name, provider] of Object.entries(
-      CONFIG.notificator.monitor
-    )) {
+    for (const [name, provider] of Object.entries(CONFIG.notificator.monitor)) {
       const data = await getDataFromFile(provider.filename);
       const current = get(data, provider.key);
 
@@ -51,7 +48,10 @@ const notifyMonitor = async () => {
       };
 
       if (provider.notification) {
-        await createNotificationAndNotifyChannels(notification, provider.channels);
+        await createNotificationAndNotifyChannels(
+          notification,
+          provider.channels
+        );
       }
     }
   } catch (e) {
@@ -76,7 +76,10 @@ const notifyThresholds = async () => {
         };
 
         if (provider.notification) {
-          await createNotificationAndNotifyChannels(notification, provider.channels);
+          await createNotificationAndNotifyChannels(
+            notification,
+            provider.channels
+          );
         }
 
         if (provider.incident) {
@@ -104,7 +107,10 @@ const notifyStatus = async () => {
         };
 
         if (provider.notification) {
-          await createNotificationAndNotifyChannels(notification, provider.channels);
+          await createNotificationAndNotifyChannels(
+            notification,
+            provider.channels
+          );
         }
 
         if (provider.incident) {
@@ -118,20 +124,27 @@ const notifyStatus = async () => {
   }
 };
 
-async function createNotificationAndNotifyChannels(notification: Notification, channels: string[]) {
+async function createNotificationAndNotifyChannels(
+  notification: Notification,
+  channels: string[]
+) {
   logger.info('Creating notification:', notification);
 
   await DB.insert(notification);
 
-
-  channels?.forEach(async channel => {
+  channels?.forEach(async (channel) => {
     if (CONFIG.notificator.channels.slack[channel]) {
-      logger.info(`Sending msg to Slack: ${channel}`)
-      await slack(CONFIG.notificator.channels.slack[channel]).notify(NOTIFICATION_USER, notification.title)
-
+      logger.info(`Sending msg to Slack: ${channel}`);
+      await slack(CONFIG.notificator.channels.slack[channel]).notify(
+        NOTIFICATION_USER,
+        notification.title
+      );
     } else if (CONFIG.notificator.channels.teams[channel]) {
-      logger.info(`Sending msg to Teams: ${channel}`)
-      await teams(CONFIG.notificator.channels.teams[channel]).notify(NOTIFICATION_USER, notification.title)
+      logger.info(`Sending msg to Teams: ${channel}`);
+      await teams(CONFIG.notificator.channels.teams[channel]).notify(
+        NOTIFICATION_USER,
+        notification.title
+      );
     }
   });
 }

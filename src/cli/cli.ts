@@ -2,6 +2,7 @@ import { DebugHelper, FileHelper, simpleLogger } from 'adash-ts-helper';
 import cac from 'cac';
 import collector from '../scripts/collector';
 import notificator from '../scripts/notificator';
+import computekpi from '../scripts/computekpi';
 
 const cli = cac();
 const logger = simpleLogger();
@@ -20,10 +21,25 @@ async function setupEnvs(envs: Record<string, string>) {
 }
 
 cli
+  .command('computekpi')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+    setupEnvs(config['envs']);
+
+    await computekpi(config);
+    logger.info('done');
+  });
+
+cli
   .command('notificator')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(options.config || './config.json');
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
     setupEnvs(config['envs']);
 
     await notificator(config);
@@ -34,7 +50,9 @@ cli
   .command('collect')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(options.config || './config.json');
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
     setupEnvs(config['envs']);
 
     await collector(config, {
@@ -50,7 +68,9 @@ cli
   .command('collect:browserstack')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(options.config || './config.json');
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
     setupEnvs(config['envs']);
 
     await collector(config['dataDir'], { browserstack: true });
@@ -61,7 +81,9 @@ cli
   .command('collect:gitlab')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(options.config || './config.json');
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
     setupEnvs(config['envs']);
 
     await collector(config['dataDir'], { gitlab: true });
@@ -72,7 +94,9 @@ cli
   .command('collect:bitrise')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(options.config || './config.json');
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
     setupEnvs(config['envs']);
 
     await collector(config['dataDir'], { bitrise: true });
@@ -83,7 +107,9 @@ cli
   .command('collect:status')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(options.config || './config.json');
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
     setupEnvs(config['envs']);
 
     await collector(config['dataDir'], { status: true });

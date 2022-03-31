@@ -6,6 +6,8 @@ test
 src/**.js
 data/*
 !data/.gitkeep
+kpie2edata/*
+!kpie2edata/.gitkeep
 coverage
 *.log
 package-lock.json

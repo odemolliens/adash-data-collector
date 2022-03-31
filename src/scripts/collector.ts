@@ -13,11 +13,10 @@ import {
   simpleDb,
   simpleLogger,
   slack,
-  teams
+  teams,
 } from 'adash-ts-helper';
 import { getLast6MonthsDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
-
 
 type Entry = {
   readonly createdAt: number;
@@ -33,33 +32,60 @@ const collectStatus = async (config: Config) => {
   };
 
   if (config.collector.GitLab.status) {
-    row['Gitlab'] = { ...await GitlabStatusHelper.getStatus(), url: 'https://status.gitlab.com' }
+    row['Gitlab'] = {
+      ...(await GitlabStatusHelper.getStatus()),
+      url: 'https://status.gitlab.com',
+    };
   }
 
   if (config.collector.Bitrise.status) {
-    row['Bitrise Build Processing'] = { ...await BitriseStatusHelper.getBuildProcessingStatus(), url: 'https://status.bitrise.io' }
-    row['Bitrise Step Issue'] = { ...await BitriseStatusHelper.getStepIssueStatus(), url: 'https://status.bitrise.io' }
+    row['Bitrise Build Processing'] = {
+      ...(await BitriseStatusHelper.getBuildProcessingStatus()),
+      url: 'https://status.bitrise.io',
+    };
+    row['Bitrise Step Issue'] = {
+      ...(await BitriseStatusHelper.getStepIssueStatus()),
+      url: 'https://status.bitrise.io',
+    };
   }
 
   if (config.collector.NPM.status) {
-    row['NPM Package Publishing'] = { ...await NPMStatusHelper.getPackagePublishingStatus(), url: 'https://status.npmjs.org' }
+    row['NPM Package Publishing'] = {
+      ...(await NPMStatusHelper.getPackagePublishingStatus()),
+      url: 'https://status.npmjs.org',
+    };
   }
 
   if (config.collector.Gradle.status) {
-    row['Gradle'] = { ...await GradleStatusHelper.getStatus(), url: 'https://status.gradle.com' }
+    row['Gradle'] = {
+      ...(await GradleStatusHelper.getStatus()),
+      url: 'https://status.gradle.com',
+    };
   }
 
   if (config.collector.CocoaPods.status) {
-    row['CocoaPods CDN'] = { ...await CocoaPodsStatusHelper.getCDNStatus(), url: 'https://status.cocoapods.org' }
+    row['CocoaPods CDN'] = {
+      ...(await CocoaPodsStatusHelper.getCDNStatus()),
+      url: 'https://status.cocoapods.org',
+    };
   }
 
   if (config.collector.BrowserStack.status) {
-    row['BrowserStack Live'] = { ...await BrowserStackStatusHelper.getLiveStatus(), url: 'https://status.browserstack.com' }
-    row['BrowserStack AppAutomate'] = { ...await BrowserStackStatusHelper.getAutomateStatus(), url: 'https://status.browserstack.com' }
+    row['BrowserStack Live'] = {
+      ...(await BrowserStackStatusHelper.getLiveStatus()),
+      url: 'https://status.browserstack.com',
+    };
+    row['BrowserStack AppAutomate'] = {
+      ...(await BrowserStackStatusHelper.getAutomateStatus()),
+      url: 'https://status.browserstack.com',
+    };
   }
 
   // collect Status
-  const db = simpleDb<Partial<Entry>>({ path: `${config.dataDir}/status.json`, logger });
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/status.json`,
+    logger,
+  });
   await db.init();
   //await db.reset();
 
@@ -100,7 +126,10 @@ const collectGitLab = async (config: Config) => {
   };
 
   // collect Status
-  const db = simpleDb<Partial<Entry>>({ path: `${config.dataDir}/gitlab.json`, logger });
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/gitlab.json`,
+    logger,
+  });
   await db.init();
   //await db.reset();
 
@@ -111,18 +140,21 @@ const collectGitLab = async (config: Config) => {
 };
 
 const collectBrowserStack = async (config: Config) => {
-  const [username, password] = config.collector.BrowserStack.token.split(":")
+  const [username, password] = config.collector.BrowserStack.token.split(':');
   const browserstackHelperInstance = BrowserStackHelper({
     auth: {
-      username, password
+      username,
+      password,
     },
   });
 
   const row = {
     createdAt: Date.now(),
     BrowserStackAppAutomateBuilds: (
-      (await browserstackHelperInstance.getBuilds()).filter((d) => d.automation_build.name.includes('MyPXS'))
-    ).slice(0, 15), // last 10 recent builds
+      await browserstackHelperInstance.getBuilds()
+    )
+      .filter((d) => d.automation_build.name.includes('MyPXS'))
+      .slice(0, 15), // last 10 recent builds
   };
 
   // collect Status
@@ -212,7 +244,10 @@ const collectBitrise = async (config: Config) => {
   };
 
   // collect Status
-  const db = simpleDb<Partial<Entry>>({ path: `${config.dataDir}/bitrise.json`, logger });
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/bitrise.json`,
+    logger,
+  });
   await db.init();
   //await db.reset()
 
@@ -249,7 +284,9 @@ export default async (
     status && (await collectStatus(config));
     bitrise && config.collector.Bitrise && (await collectBitrise(config));
     gitlab && config.collector.GitLab && (await collectGitLab(config));
-    browserstack && config.collector.BrowserStack && (await collectBrowserStack(config));
+    browserstack &&
+      config.collector.BrowserStack &&
+      (await collectBrowserStack(config));
   } catch (e) {
     logger.error('An errore occurred:', e.message);
     await notificator.notify('Error', 'adash-data-collector: ' + e);

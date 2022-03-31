@@ -1,4 +1,4 @@
-export type Severity = 'low' | 'medium' | 'high'
+export type Severity = 'low' | 'medium' | 'high';
 
 export type Threshold = {
   readonly key: string;
@@ -30,11 +30,11 @@ export type Monitor = {
 export type Slack = {
   username: string;
   webhookURL: string;
-}
+};
 
 export type Teams = {
   webhookURL: string;
-}
+};
 
 export type Config = {
   readonly dataDir: string;
@@ -43,17 +43,17 @@ export type Config = {
     GitLab?: { status: boolean; projectId: string; token: string };
     BrowserStack?: { status: boolean; token: string };
     Bitrise?: { status: boolean; appSlug: string; token: string };
-    NPM: { status: boolean; }
-    Gradle: { status: boolean; }
-    CocoaPods: { status: boolean; }
-  }
+    NPM: { status: boolean };
+    Gradle: { status: boolean };
+    CocoaPods: { status: boolean };
+  };
   readonly notificator: {
     readonly monitor: Record<string, Monitor>;
     readonly status: Record<string, Status>;
     readonly thresholds: Record<string, Threshold>;
     readonly channels: {
-      slack: Record<string, Slack>
-      teams: Record<string, Teams>
-    }
+      slack: Record<string, Slack>;
+      teams: Record<string, Teams>;
+    };
   };
 };
