@@ -55,7 +55,7 @@ export default async (config: Config) => {
       const android = [];
 
       for (const s of teamStats.suites.suites) {
-        const minifiedSuite = { title: s.title, duration: s.duration, tests: s.tests.map(t => ({ title: t.title, pass: t.pass, duration: t.duration })) }
+        const minifiedSuite = { title: s.title, duration: s.duration, tests: s.tests.length, pass: s.tests.filter(t => t.pass).length }
 
         if (minifiedSuite.title.includes('ios')) {
           ios.push(minifiedSuite);
@@ -64,34 +64,34 @@ export default async (config: Config) => {
         }
       }
 
-      const iOSTotalTests = ios.reduce((prev, curr) => prev + curr.tests.length, 0)
-      const iOSPass = ios.reduce((prev, curr) => prev + curr.tests.filter(t => t.pass).length, 0)
+      const iOSTotalTests = ios.reduce((prev, curr) => prev + curr.tests, 0)
+      const iOSPass = ios.reduce((prev, curr) => prev + curr.pass, 0)
       const iOSFail = iOSTotalTests - iOSPass
 
       row.stats.ios.push({
-        teamName: team,
+        teamName: team.toUpperCase(),
         totalTests: iOSTotalTests,
         pass: iOSPass,
         fail: iOSFail,
         passPercentage: parseFloat((iOSPass / iOSTotalTests * 100).toFixed(2)),
-        suites: ios,
+        //suites: ios,
       });
 
-      const androidTotalTests = android.reduce((prev, curr) => prev + curr.tests.length, 0)
-      const androidPass = android.reduce((prev, curr) => prev + curr.tests.filter(t => t.pass).length, 0)
+      const androidTotalTests = android.reduce((prev, curr) => prev + curr.tests, 0)
+      const androidPass = android.reduce((prev, curr) => prev + curr.pass, 0)
       const androidFail = androidTotalTests - androidPass
 
       row.stats.android.push({
-        teamName: team,
+        teamName: team.toUpperCase(),
         totalTests: androidTotalTests,
         pass: androidPass,
         fail: androidFail,
         passPercentage: parseFloat((androidPass / androidTotalTests * 100).toFixed(2)),
-        suites: android,
+        //suites: android,
       });
     }
 
-    // filter out rows older than 7 days ago
+    // filter out rows older than 6 months
     await db.filter((row) => new Date(row.createdAt) >= last6Months);
     await db.insert(row);
     await db.commit();
