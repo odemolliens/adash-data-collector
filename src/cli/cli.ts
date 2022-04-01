@@ -3,6 +3,7 @@ import cac from 'cac';
 import collector from '../scripts/collector';
 import notificator from '../scripts/notificator';
 import computekpi from '../scripts/computekpi';
+import senddata from '../scripts/senddata';
 
 const cli = cac();
 const logger = simpleLogger();
@@ -19,6 +20,19 @@ async function setupEnvs(envs: Record<string, string>) {
     }
   }
 }
+
+cli
+  .command('senddata')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+    setupEnvs(config['envs']);
+
+    await senddata();
+    logger.info('done');
+  });
 
 cli
   .command('computekpi')
@@ -40,6 +54,7 @@ cli
     const config = await FileHelper.readJSONFile(
       options.config || './config.json'
     );
+
     setupEnvs(config['envs']);
 
     await notificator(config);

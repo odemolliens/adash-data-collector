@@ -8,10 +8,10 @@ export default async () => {
   const {
     TEAMS_WEBHOOK_URL,
     SLACK_WEBHOOK_URL,
-    //ADASH_GITLAB_TOKEN,
+    DATA_REPOSITORY
   } = process.env;
 
-  //const REMOTE = `https://gitlab-ci-token:${ADASH_GITLAB_TOKEN}@gitlab.com/proximus.com/myproximus/adash/adash-rn-web.git`;
+  const REMOTE = DATA_REPOSITORY;
 
   notificator.registerMultiple([
     teams({ webhookURL: TEAMS_WEBHOOK_URL }),
@@ -23,11 +23,26 @@ export default async () => {
 
   try {
     await git.init()
-    logger.debug(await git.status())
-    /*logger.debug(
+
+    try {
+      logger.debug(
+        await git.raw(
+          'remote',
+          'add',
+          `origin`,
+          REMOTE
+        )
+      );
+
+      await git.fetch()
+      await git.raw('checkout', '-b', 'data')
+    } catch (e) { }
+
+    logger.debug(
       await git.raw(
         'add',
-        'data')
+        '.'
+      )
     );
 
     logger.debug(
@@ -36,9 +51,9 @@ export default async () => {
         '-m',
         `New Data`
       )
-    );*/
+    );
 
-    //await git.raw('push', REMOTE, '--force');
+    await git.raw('push', 'origin', 'data');
 
   } catch (e) {
     logger.error('An errore occurred:', e.message);
