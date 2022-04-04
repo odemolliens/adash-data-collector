@@ -15,6 +15,7 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
+
 import { getLast6MonthsDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
 
@@ -178,70 +179,23 @@ const collectBitrise = async (config: Config) => {
     },
   });
 
-  const BitRiseBuildLastNotCancelledWorkflowDev = (
-    await bitriseHelperInstance.getBuildsByAppSlug(
-      config.collector.Bitrise.appSlug,
-      {
-        workflow: 'dev',
-      }
-    )
-  ).data.find((b) => b.status !== CANCELLED);
-
-  const BitRiseBuildLastNotCancelledWorkflowUat = (
-    await bitriseHelperInstance.getBuildsByAppSlug(
-      config.collector.Bitrise.appSlug,
-      {
-        workflow: 'uat',
-      }
-    )
-  ).data.find((b) => b.status !== CANCELLED);
-
-  const BitRiseBuildLastNotCancelledWorkflowLut = (
-    await bitriseHelperInstance.getBuildsByAppSlug(
-      config.collector.Bitrise.appSlug,
-      {
-        workflow: 'lut',
-      }
-    )
-  ).data.find((b) => b.status !== CANCELLED);
-
-  const BitRiseBuildLastNotCancelledWorkflowProdlike = (
-    await bitriseHelperInstance.getBuildsByAppSlug(
-      config.collector.Bitrise.appSlug,
-      {
-        workflow: 'prodlike',
-      }
-    )
-  ).data.find((b) => b.status !== CANCELLED);
-
-  const BitRiseBuildLastNotCancelledWorkflowProd = (
-    await bitriseHelperInstance.getBuildsByAppSlug(
-      config.collector.Bitrise.appSlug,
-      {
-        workflow: 'prod',
-      }
-    )
-  ).data.find((b) => b.status !== CANCELLED);
-
-  const BitRiseBuildLastNotCancelledWorkflowCodeQuality = (
-    await bitriseHelperInstance.getBuildsByAppSlug(
-      config.collector.Bitrise.appSlug,
-      {
-        workflow: 'codeQuality',
-      }
-    )
-  ).data.find((b) => b.status !== CANCELLED);
-
   const row = {
     createdAt: Date.now(),
     BitriseQueueSize: await bitriseHelperInstance.getBuildQueueSize(),
-    BitRiseBuildLastNotCancelledWorkflowDev,
-    BitRiseBuildLastNotCancelledWorkflowUat,
-    BitRiseBuildLastNotCancelledWorkflowLut,
-    BitRiseBuildLastNotCancelledWorkflowProdlike,
-    BitRiseBuildLastNotCancelledWorkflowProd,
-    BitRiseBuildLastNotCancelledWorkflowCodeQuality,
+    workflows: {}
   };
+
+  for (const workflow of config.collector.Bitrise.workflows) {
+    row.workflows[workflow] = (
+      await bitriseHelperInstance.getBuildsByAppSlug(
+        config.collector.Bitrise.appSlug,
+        {
+          workflow,
+        }
+      )
+    ).data.find((b) => b.status !== CANCELLED);
+  }
+
 
   // collect Status
   const db = simpleDb<Partial<Entry>>({
@@ -249,7 +203,7 @@ const collectBitrise = async (config: Config) => {
     logger,
   });
   await db.init();
-  //await db.reset()
+  await db.reset()
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);

@@ -1,4 +1,3 @@
-import { get, isEmpty, last } from 'lodash';
 import {
   FileHelper,
   GitLabHelper,
@@ -9,6 +8,8 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
+import { get, isEmpty, last } from 'lodash';
+
 import { getLastWeekDate, shorthash } from '../lib/utils';
 import { Config, Severity } from '../types/config';
 
@@ -99,7 +100,7 @@ const notifyStatus = async () => {
       const data = await getDataFromFile(provider.filename);
       const current = get(data, provider.key);
 
-      if (current !== provider.success) {
+      if (!provider.success.includes(current)) {
         const notification = {
           createdAt,
           title: `${name} status ${current}`,
@@ -126,7 +127,7 @@ const notifyStatus = async () => {
 
 async function createNotificationAndNotifyChannels(
   notification: Notification,
-  channels: string[]
+  channels: readonly string[]
 ) {
   logger.info('Creating notification:', notification);
 
@@ -199,7 +200,7 @@ export default async (config: Config) => {
     CONFIG = config;
 
     await DB.init();
-    //await db.reset();
+    //await DB.reset();
 
     logger.debug('Config', CONFIG);
 

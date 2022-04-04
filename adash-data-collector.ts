@@ -1,9 +1,9 @@
 import { DebugHelper, FileHelper, simpleLogger } from 'adash-ts-helper';
 import cac from 'cac';
-import collector from '../scripts/collector';
-import notificator from '../scripts/notificator';
-import computekpi from '../scripts/computekpi';
-import senddata from '../scripts/senddata';
+import collector from './src/scripts/collector';
+import computekpi from './src/scripts/computekpi';
+import notificator from './src/scripts/notificator';
+import senddata from './src/scripts/senddata';
 
 const cli = cac();
 const logger = simpleLogger();
