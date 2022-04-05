@@ -33,7 +33,7 @@ export default async () => {
 
     logger.debug(await git.raw('commit', '-m', `New Data`));
 
-    await git.raw('push', 'origin', 'data');
+    await git.raw('push', 'origin', 'data', '--force');
   } catch (e) {
     logger.error('An errore occurred:', e.message);
     await notificator.notify('Error', 'adash-data-collector senddata: ' + e);
