@@ -182,7 +182,7 @@ const collectBitrise = async (config: Config) => {
   const row = {
     createdAt: Date.now(),
     BitriseQueueSize: await bitriseHelperInstance.getBuildQueueSize(),
-    workflows: {}
+    workflows: {},
   };
 
   for (const workflow of config.collector.Bitrise.workflows) {
@@ -196,14 +196,13 @@ const collectBitrise = async (config: Config) => {
     ).data.find((b) => b.status !== CANCELLED);
   }
 
-
   // collect Status
   const db = simpleDb<Partial<Entry>>({
     path: `${config.dataDir}/bitrise.json`,
     logger,
   });
   await db.init();
-  await db.reset()
+  await db.reset();
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);

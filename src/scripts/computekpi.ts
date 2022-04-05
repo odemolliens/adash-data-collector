@@ -52,6 +52,12 @@ export default async (config: Config) => {
         `./kpie2edata/teams/${team}/wdio-ma-merged.json`
       );
 
+      const results = (
+        await fs.readdir(`./kpie2edata/teams/${team}/`, { withFileTypes: true })
+      ).filter((f) => f.name.includes('html'))[0];
+
+      sh`cp ./kpie2edata/teams/${team}/${results.name} ./data/kpi-${team}.html`;
+
       const createdAt = new Date(teamStats.stats.start);
       createdAt.setMinutes(new Date().getMinutes()); // TODO remove me later
       row.createdAt = createdAt.getTime();

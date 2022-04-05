@@ -13,7 +13,7 @@ export type Threshold = {
 export type Status = {
   readonly key: string;
   readonly filename: string;
-  readonly success: string | string[];
+  readonly success: string | readonly string[];
   readonly incident: boolean;
   readonly notification: boolean;
   readonly severity: Severity;
@@ -53,7 +53,7 @@ export type Config = {
       readonly status: boolean;
       readonly appSlug: string;
       readonly token: string;
-      readonly workflows: string[];
+      readonly workflows: readonly string[];
     };
     readonly NPM: { readonly status: boolean };
     readonly Gradle: { readonly status: boolean };
