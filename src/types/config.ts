@@ -38,6 +38,7 @@ export type Teams = {
 
 export type Config = {
   readonly dataDir: string;
+  readonly kpiDataDir: string;
   readonly envs: Record<string, string>;
   readonly collector: {
     readonly GitLab?: {

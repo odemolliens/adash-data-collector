@@ -220,6 +220,7 @@
     }
   },
   "dataDir": "./data",
+  "kpiDataDir": "./kpiDataDir",
   "envs": {
     "SLACK_WEBHOOK_URL": "WEBHOOK_URL",
     "TEAMS_WEBHOOK_URL": "WEBHOOK_URL",
