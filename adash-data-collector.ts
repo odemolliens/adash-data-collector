@@ -57,7 +57,49 @@ cli
 
     setupEnvs(config['envs']);
 
-    await notificator(config);
+    await notificator(config, { monitor: true, status: true, thresholds: true });
+    logger.info('done');
+  });
+
+cli
+  .command('notificator:monitor')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+
+    setupEnvs(config['envs']);
+
+    await notificator(config, { monitor: true, status: false, thresholds: false });
+    logger.info('done');
+  });
+
+cli
+  .command('notificator:status')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+
+    setupEnvs(config['envs']);
+
+    await notificator(config, { monitor: false, status: true, thresholds: false });
+    logger.info('done');
+  });
+
+cli
+  .command('notificator:thresholds')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+
+    setupEnvs(config['envs']);
+
+    await notificator(config, { monitor: false, status: false, thresholds: true });
     logger.info('done');
   });
 

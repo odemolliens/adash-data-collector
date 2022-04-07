@@ -19,6 +19,12 @@ type Notification = {
   readonly type: Severity | 'monitor';
 };
 
+type NotificatorProps = {
+  readonly monitor?: boolean;
+  readonly status?: boolean;
+  readonly thresholds?: boolean;
+};
+
 const createdAt = Date.now();
 const logger = simpleLogger();
 const NOTIFICATION_USER = 'Adash Notification TEST';
@@ -103,7 +109,7 @@ const notifyStatus = async () => {
       if (!provider.success.includes(current)) {
         const notification = {
           createdAt,
-          title: `${name} status ${current}`,
+          title: `🔥 ${name} status ${current}`,
           type: provider.severity,
         };
 
@@ -169,7 +175,7 @@ async function createIncident(notification: Notification) {
   }
 }
 
-export default async (config: Config) => {
+export default async (config: Config, { monitor, status, thresholds }: NotificatorProps) => {
   const {
     TEAMS_WEBHOOK_URL,
     SLACK_WEBHOOK_URL,
@@ -204,9 +210,9 @@ export default async (config: Config) => {
 
     logger.debug('Config', CONFIG);
 
-    await notifyMonitor();
-    await notifyStatus();
-    await notifyThresholds();
+    monitor && await notifyMonitor();
+    status && await notifyStatus();
+    thresholds && await notifyThresholds();
 
     // filter out rows older than 7 days ago
     const lastWeekDate = getLastWeekDate();
