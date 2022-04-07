@@ -176,7 +176,10 @@ async function createIncident(notification: Notification) {
   }
 }
 
-export default async (config: Config, { monitor, status, thresholds }: NotificatorProps) => {
+export default async (
+  config: Config,
+  { monitor, status, thresholds }: NotificatorProps
+) => {
   const {
     TEAMS_WEBHOOK_URL,
     SLACK_WEBHOOK_URL,
@@ -211,9 +214,9 @@ export default async (config: Config, { monitor, status, thresholds }: Notificat
 
     logger.debug('Config', CONFIG);
 
-    monitor && await notifyMonitor();
-    status && await notifyStatus();
-    thresholds && await notifyThresholds();
+    monitor && (await notifyMonitor());
+    status && (await notifyStatus());
+    thresholds && (await notifyThresholds());
 
     // filter out rows older than 7 days ago
     const lastWeekDate = getLastWeekDate();

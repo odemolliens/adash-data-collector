@@ -1,12 +1,15 @@
+import fs from 'fs/promises';
+
 import {
-  FileHelper, notificator,
+  FileHelper,
+  notificator,
   shell,
   simpleDb,
   simpleLogger,
   slack,
-  teams
+  teams,
 } from 'adash-ts-helper';
-import fs from 'fs/promises';
+
 import { getLast6MonthsDate } from '../lib/utils';
 import { Config } from '../types/config';
 
@@ -39,7 +42,7 @@ export default async (config: Config) => {
     const teams = (
       await fs.readdir(`${config.kpiDataDir}/teams`, { withFileTypes: true })
     )
-      .filter((dir) => dir.isDirectory() && !dir.name.startsWith("."))
+      .filter((dir) => dir.isDirectory() && !dir.name.startsWith('.'))
       .map((dir) => dir.name);
 
     for (const team of teams) {
@@ -48,7 +51,9 @@ export default async (config: Config) => {
       );
 
       const results = (
-        await fs.readdir(`${config.kpiDataDir}/teams/${team}/`, { withFileTypes: true })
+        await fs.readdir(`${config.kpiDataDir}/teams/${team}/`, {
+          withFileTypes: true,
+        })
       ).filter((f) => f.name.includes('html'))[0];
 
       sh`cp ${config.kpiDataDir}/teams/${team}/${results.name} ./data/kpi-${team}.html`;
