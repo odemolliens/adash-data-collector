@@ -157,7 +157,8 @@ async function createNotificationAndNotifyChannels(
 }
 
 async function createIncident(notification: Notification) {
-  const id = shorthash(notification.title.toLowerCase());
+  const title = notification.title.replace(/\p{Emoji}/gu, ''); //remove emoji
+  const id = shorthash(title.toLowerCase());
 
   const { data: issues } = await adashGitlabHelper.listIssues({
     search: id,
@@ -168,7 +169,7 @@ async function createIncident(notification: Notification) {
     logger.info('Creating incident:', notification);
 
     await adashGitlabHelper.newIssueWithLabels(
-      `${id}: ${notification.title}`,
+      `${id}: ${title}`,
       [notification.type],
       { issue_type: 'incident' }
     );
