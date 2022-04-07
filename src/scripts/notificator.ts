@@ -44,7 +44,7 @@ const notifyMonitor = async () => {
 
       const notification = {
         createdAt,
-        title: `${name} monitor: ${current}`,
+        title: `ℹ️ ${name} monitor: ${current}`,
         type: 'monitor' as const,
       };
 
@@ -72,7 +72,7 @@ const notifyThresholds = async () => {
       if (current > provider.max) {
         const notification = {
           createdAt,
-          title: `${name} threshold reached: ${current} > ${provider.max}`,
+          title: `🔥 ${name} threshold reached: ${current} > ${provider.max}`,
           type: provider.severity,
         };
 
