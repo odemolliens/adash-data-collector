@@ -42,21 +42,21 @@ export default async (config: Config) => {
     const row = { createdAt: null, stats: { ios: [], android: [] } };
 
     const teams = (
-      await fs.readdir(`./${config.kpiDataDir}/teams`, { withFileTypes: true })
+      await fs.readdir(`${config.kpiDataDir}/teams`, { withFileTypes: true })
     )
       .filter((dir) => dir.isDirectory())
       .map((dir) => dir.name);
 
     for (const team of teams) {
       const teamStats = await FileHelper.readJSONFile(
-        `./${config.kpiDataDir}/teams/${team}/wdio-ma-merged.json`
+        `${config.kpiDataDir}/teams/${team}/wdio-ma-merged.json`
       );
 
       const results = (
-        await fs.readdir(`./${config.kpiDataDir}/teams/${team}/`, { withFileTypes: true })
+        await fs.readdir(`${config.kpiDataDir}/teams/${team}/`, { withFileTypes: true })
       ).filter((f) => f.name.includes('html'))[0];
 
-      sh`cp ./${config.kpiDataDir}/teams/${team}/${results.name} ./data/kpi-${team}.html`;
+      sh`cp ${config.kpiDataDir}/teams/${team}/${results.name} ./data/kpi-${team}.html`;
 
       row.createdAt = new Date(teamStats.stats.start).getTime();
 
