@@ -157,7 +157,7 @@ async function createNotificationAndNotifyChannels(
 }
 
 async function createIncident(notification: Notification) {
-  const title = notification.title.replace(/\p{Emoji}/gu, ''); //remove emoji
+  const title = notification.title; //remove emoji
   const id = shorthash(title.toLowerCase());
 
   const { data: issues } = await adashGitlabHelper.listIssues({
