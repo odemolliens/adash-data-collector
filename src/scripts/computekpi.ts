@@ -110,9 +110,6 @@ export default async (config: Config) => {
       });
     }
 
-    if (row.createdAt === null) {
-      return
-    }
     // filter out rows older than 6 months
     await db.filter((row) => new Date(row.createdAt) >= last6Months);
     await db.insert(row);
