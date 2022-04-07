@@ -71,7 +71,7 @@ cli
 
     setupEnvs(config['envs']);
 
-    await notificator(config, { monitor: true, status: false, thresholds: false });
+    await notificator(config, { monitor: true });
     logger.info('done');
   });
 
@@ -85,7 +85,7 @@ cli
 
     setupEnvs(config['envs']);
 
-    await notificator(config, { monitor: false, status: true, thresholds: false });
+    await notificator(config, { status: true });
     logger.info('done');
   });
 
@@ -99,7 +99,7 @@ cli
 
     setupEnvs(config['envs']);
 
-    await notificator(config, { monitor: false, status: false, thresholds: true });
+    await notificator(config, { thresholds: true });
     logger.info('done');
   });
 
@@ -130,7 +130,9 @@ cli
     );
     setupEnvs(config['envs']);
 
-    await collector(config['dataDir'], { browserstack: true });
+    await collector(config, {
+      browserstack: true,
+    });
     logger.info('done');
   });
 
@@ -143,20 +145,9 @@ cli
     );
     setupEnvs(config['envs']);
 
-    await collector(config['dataDir'], { gitlab: true });
-    logger.info('done');
-  });
-
-cli
-  .command('collect:bitrise')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await collector(config['dataDir'], { bitrise: true });
+    await collector(config, {
+      gitlab: true,
+    });
     logger.info('done');
   });
 
@@ -169,7 +160,24 @@ cli
     );
     setupEnvs(config['envs']);
 
-    await collector(config['dataDir'], { status: true });
+    await collector(config, {
+      status: true,
+    });
+    logger.info('done');
+  });
+
+cli
+  .command('collect:bitrise')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+    setupEnvs(config['envs']);
+
+    await collector(config, {
+      bitrise: true,
+    });
     logger.info('done');
   });
 
