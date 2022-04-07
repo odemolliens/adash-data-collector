@@ -43,7 +43,11 @@ cli
 
     setupEnvs(config['envs']);
 
-    await notificator(config, { monitor: true, status: true, thresholds: true });
+    await notificator(config, {
+      monitor: true,
+      status: true,
+      thresholds: true,
+    });
     logger.info('done');
   });
 
