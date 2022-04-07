@@ -1,15 +1,12 @@
-import fs from 'fs/promises';
-
 import {
-  notificator,
+  FileHelper, notificator,
   shell,
   simpleDb,
   simpleLogger,
   slack,
-  teams,
+  teams
 } from 'adash-ts-helper';
-import { FileHelper } from 'adash-ts-helper';
-
+import fs from 'fs/promises';
 import { getLast6MonthsDate } from '../lib/utils';
 import { Config } from '../types/config';
 
@@ -29,8 +26,6 @@ export default async (config: Config) => {
   ]);
 
   try {
-    sh`sh updatekpidata.sh`;
-
     // collect KPI
     const db = simpleDb<Partial<any>>({
       path: `${config.dataDir}/kpie2e.json`,
