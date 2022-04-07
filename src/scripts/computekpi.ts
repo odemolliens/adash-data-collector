@@ -44,7 +44,7 @@ export default async (config: Config) => {
     const teams = (
       await fs.readdir(`${config.kpiDataDir}/teams`, { withFileTypes: true })
     )
-      .filter((dir) => dir.isDirectory())
+      .filter((dir) => dir.isDirectory() && !dir.name.startsWith("."))
       .map((dir) => dir.name);
 
     for (const team of teams) {
