@@ -6,11 +6,10 @@ import {
   simpleDb,
   simpleLogger,
   slack,
-  teams,
+  teams
 } from 'adash-ts-helper';
 import { get, isEmpty, last } from 'lodash';
-
-import { getLastWeekDate, shorthash } from '../lib/utils';
+import { createDailyNotificationID, getLastWeekDate } from '../lib/utils';
 import { Config, Severity } from '../types/config';
 
 type Notification = {
@@ -34,11 +33,7 @@ let DB: any;
 let CONFIG: Config;
 let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
 
-const createDailyNotificationID = (notificationTitle: string) => {
-  return shorthash(
-    notificationTitle.toLowerCase() + new Date(createdAt).toLocaleDateString()
-  );
-};
+
 
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {
@@ -58,7 +53,7 @@ const notifyMonitor = async () => {
       const title = `ℹ️ ${name} monitor: ${current}`;
 
       const notification = {
-        id: createDailyNotificationID(title),
+        id: createDailyNotificationID(title, createdAt),
         createdAt,
         title,
         type: 'monitor' as const,
@@ -89,7 +84,7 @@ const notifyThresholds = async () => {
         const title = `🔥 ${name} threshold reached: ${current} > ${provider.max}`;
 
         const notification = {
-          id: createDailyNotificationID(title),
+          id: createDailyNotificationID(title, createdAt),
           createdAt,
           title,
           type: provider.severity,
@@ -123,7 +118,7 @@ const notifyStatus = async () => {
         const title = `🔥 ${name} status ${current}`;
 
         const notification = {
-          id: createDailyNotificationID(title),
+          id: createDailyNotificationID(title, createdAt),
           createdAt,
           title,
           type: provider.severity,
@@ -178,7 +173,7 @@ async function createNotificationAndNotifyChannels(
 
 async function createIncident(notification: Notification) {
   const title = notification.title;
-  const id = shorthash(title.toLowerCase());
+  const id = createDailyNotificationID(title, createdAt);
 
   const { data: issues } = await adashGitlabHelper.listIssues({
     search: id,
