@@ -153,7 +153,7 @@ async function createNotificationAndNotifyChannels(
 ) {
   logger.info('Creating notification:', notification);
 
-  if (DB.data.find((n: Notification) => n.id === notification.id)) {
+  if (DB.data().find((n: Notification) => n.id === notification.id)) {
     return;
   }
 
