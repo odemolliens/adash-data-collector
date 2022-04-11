@@ -17,6 +17,7 @@ type Notification = {
   readonly createdAt: number;
   readonly title: string;
   readonly type: Severity | 'monitor';
+  readonly id: string;
 };
 
 type NotificatorProps = {
@@ -33,6 +34,12 @@ let DB: any;
 let CONFIG: Config;
 let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
 
+const createDailyNotificationID = (notificationTitle: string) => {
+  return shorthash(
+    notificationTitle.toLowerCase() + new Date(createdAt).toLocaleDateString()
+  );
+};
+
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {
     FILES[filename] = last(
@@ -48,9 +55,12 @@ const notifyMonitor = async () => {
       const data = await getDataFromFile(provider.filename);
       const current = get(data, provider.key);
 
+      const title = `ℹ️ ${name} monitor: ${current}`;
+
       const notification = {
+        id: createDailyNotificationID(title),
         createdAt,
-        title: `ℹ️ ${name} monitor: ${current}`,
+        title,
         type: 'monitor' as const,
       };
 
@@ -76,9 +86,12 @@ const notifyThresholds = async () => {
       const current = get(data, provider.key);
 
       if (current > provider.max) {
+        const title = `🔥 ${name} threshold reached: ${current} > ${provider.max}`;
+
         const notification = {
+          id: createDailyNotificationID(title),
           createdAt,
-          title: `🔥 ${name} threshold reached: ${current} > ${provider.max}`,
+          title,
           type: provider.severity,
         };
 
@@ -107,9 +120,12 @@ const notifyStatus = async () => {
       const current = get(data, provider.key);
 
       if (!provider.success.includes(current)) {
+        const title = `🔥 ${name} status ${current}`;
+
         const notification = {
+          id: createDailyNotificationID(title),
           createdAt,
-          title: `🔥 ${name} status ${current}`,
+          title,
           type: provider.severity,
         };
 
@@ -137,6 +153,10 @@ async function createNotificationAndNotifyChannels(
 ) {
   logger.info('Creating notification:', notification);
 
+  if (DB.data.find((n: Notification) => n.id === notification.id)) {
+    return;
+  }
+
   await DB.insert(notification);
 
   channels?.forEach(async (channel) => {
@@ -157,7 +177,7 @@ async function createNotificationAndNotifyChannels(
 }
 
 async function createIncident(notification: Notification) {
-  const title = notification.title; //remove emoji
+  const title = notification.title;
   const id = shorthash(title.toLowerCase());
 
   const { data: issues } = await adashGitlabHelper.listIssues({
