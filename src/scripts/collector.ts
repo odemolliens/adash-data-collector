@@ -202,7 +202,7 @@ const collectBitrise = async (config: Config) => {
     logger,
   });
   await db.init();
-  await db.reset();
+  //await db.reset();
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
