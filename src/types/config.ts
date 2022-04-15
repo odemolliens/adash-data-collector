@@ -50,6 +50,10 @@ export type Config = {
       readonly status: boolean;
       readonly token: string;
     };
+    readonly CodeMagic?: {
+      readonly appId: string;
+      readonly token: string;
+    };
     readonly Bitrise?: {
       readonly status: boolean;
       readonly appSlug: string;

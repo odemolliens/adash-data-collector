@@ -107,6 +107,7 @@ cli
       gitlab: true,
       status: true,
       bitrise: true,
+      codemagic: true
     });
     logger.info('done');
   });
@@ -122,6 +123,21 @@ cli
 
     await collector(config, {
       browserstack: true,
+    });
+    logger.info('done');
+  });
+
+cli
+  .command('collect:codemagic')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+    setupEnvs(config['envs']);
+
+    await collector(config, {
+      codemagic: true,
     });
     logger.info('done');
   });

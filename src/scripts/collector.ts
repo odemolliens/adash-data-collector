@@ -4,7 +4,7 @@ import {
   BrowserStackHelper,
   BrowserStackStatusHelper,
   CocoaPodsStatusHelper,
-  GitLabHelper,
+  CodeMagicHelper, GitLabHelper,
   GitLabHelperModule,
   GitlabStatusHelper,
   GradleStatusHelper,
@@ -13,9 +13,9 @@ import {
   simpleDb,
   simpleLogger,
   slack,
-  teams,
+  teams
 } from 'adash-ts-helper';
-
+import { omit } from 'lodash';
 import { getLast6MonthsDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
 
@@ -210,16 +210,42 @@ const collectBitrise = async (config: Config) => {
   await db.commit();
 };
 
+const collectCodeMagic = async (config: Config) => {
+  const codeMagicHelperInstance = CodeMagicHelper({ defaultHeaders: { 'x-auth-token': config.collector.CodeMagic.token } })
+
+  const builds = (await codeMagicHelperInstance.getBuilds() as any).builds;
+  const STATUS_IN_QUEUE = ['building', 'finishing', 'fetching', 'preparing', 'publishing', 'queued', 'testing']
+
+  const CodeMagicBuildQueue = builds.filter((b: any) => STATUS_IN_QUEUE.includes(b.status)).map((b: any) => omit(b, ["config", "artefacts", "buildActions", "commit"]))
+  const CodeMagicBuildQueueSize = CodeMagicBuildQueue.length
+  const CodeMagicRecentBuilds = builds.map((b: any) => omit(b, ["config", "artefacts", "buildActions", "commit"]))
+
+  // collect CodeMagic metrics
+  const row = { createdAt: Date.now(), CodeMagicBuildQueue, CodeMagicRecentBuilds, CodeMagicBuildQueueSize }
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/codemagic.json`,
+    logger,
+  });
+  await db.init();
+  await db.reset();
+
+  // filter out rows older than 7 days ago
+  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.insert(row);
+  await db.commit();
+};
+
 type CollectorProps = {
   readonly browserstack?: boolean;
   readonly gitlab?: boolean;
   readonly bitrise?: boolean;
   readonly status?: boolean;
+  readonly codemagic?: boolean;
 };
 
 export default async (
   config: Config,
-  { browserstack, gitlab, bitrise, status }: CollectorProps
+  { browserstack, gitlab, bitrise, status, codemagic }: CollectorProps
 ) => {
   const { TEAMS_WEBHOOK_URL, SLACK_WEBHOOK_URL } = process.env;
   const logger = simpleLogger();
@@ -237,6 +263,7 @@ export default async (
     status && (await collectStatus(config));
     bitrise && config.collector.Bitrise && (await collectBitrise(config));
     gitlab && config.collector.GitLab && (await collectGitLab(config));
+    codemagic && config.collector.CodeMagic && (await collectCodeMagic(config));
     browserstack &&
       config.collector.BrowserStack &&
       (await collectBrowserStack(config));
