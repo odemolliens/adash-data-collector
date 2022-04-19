@@ -154,7 +154,7 @@ const collectBrowserStack = async (config: Config) => {
     BrowserStackAppAutomateBuilds: (
       await browserstackHelperInstance.getBuilds()
     )
-      .filter((d) => d.automation_build.name.includes('MyPXS'))
+      //.filter((d) => d.automation_build.name.includes('MyPXS'))
       .slice(0, 15), // last 10 recent builds
   };
 
@@ -227,7 +227,7 @@ const collectCodeMagic = async (config: Config) => {
     logger,
   });
   await db.init();
-  await db.reset();
+  //await db.reset();
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
