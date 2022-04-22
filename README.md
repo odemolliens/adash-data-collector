@@ -28,4 +28,4 @@ For a list of available scripts and their usage run the command:
 
 # Configuration
 
-check CONFIGURATION.md
+check [CONFIGURATION.md](CONFIGURATION.md)
