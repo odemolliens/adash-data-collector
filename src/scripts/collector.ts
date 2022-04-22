@@ -4,7 +4,8 @@ import {
   BrowserStackHelper,
   BrowserStackStatusHelper,
   CocoaPodsStatusHelper,
-  CodeMagicHelper, GitLabHelper,
+  CodeMagicHelper,
+  GitLabHelper,
   GitLabHelperModule,
   GitlabStatusHelper,
   GradleStatusHelper,
@@ -13,9 +14,10 @@ import {
   simpleDb,
   simpleLogger,
   slack,
-  teams
+  teams,
 } from 'adash-ts-helper';
 import { omit } from 'lodash';
+
 import { getLast6MonthsDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
 
@@ -26,10 +28,11 @@ type Entry = {
 const CANCELLED = 4;
 const logger = simpleLogger();
 const last6Months = getLast6MonthsDate();
+const createdAt = Date.now();
 
 const collectStatus = async (config: Config) => {
   const row = {
-    createdAt: Date.now(),
+    createdAt,
   };
 
   if (config.collector.GitLab.status) {
@@ -114,7 +117,7 @@ const collectGitLab = async (config: Config) => {
   });
 
   const row = {
-    createdAt: Date.now(),
+    createdAt,
     GitlabPipelineQueue: await gitlabHelper.getPipelineQueue(),
     GitlabPipelineQueueSize: (await gitlabHelper.getPipelineQueue()).length,
     GitlabPipelineSchedules: await gitlabHelper.getPipelineSchedules(),
@@ -150,12 +153,12 @@ const collectBrowserStack = async (config: Config) => {
   });
 
   const row = {
-    createdAt: Date.now(),
+    createdAt,
     BrowserStackAppAutomateBuilds: (
       await browserstackHelperInstance.getBuilds()
     )
       //.filter((d) => d.automation_build.name.includes('MyPXS'))
-      .slice(0, 15), // last 10 recent builds
+      .slice(0, 15), // last 15 recent builds
   };
 
   // collect Status
@@ -180,7 +183,7 @@ const collectBitrise = async (config: Config) => {
   });
 
   const row = {
-    createdAt: Date.now(),
+    createdAt,
     BitriseQueueSize: await bitriseHelperInstance.getBuildQueueSize(),
     workflows: {},
   };
@@ -211,17 +214,38 @@ const collectBitrise = async (config: Config) => {
 };
 
 const collectCodeMagic = async (config: Config) => {
-  const codeMagicHelperInstance = CodeMagicHelper({ defaultHeaders: { 'x-auth-token': config.collector.CodeMagic.token } })
+  const codeMagicHelperInstance = CodeMagicHelper({
+    defaultHeaders: { 'x-auth-token': config.collector.CodeMagic.token },
+  });
 
-  const builds = (await codeMagicHelperInstance.getBuilds() as any).builds;
-  const STATUS_IN_QUEUE = ['building', 'finishing', 'fetching', 'preparing', 'publishing', 'queued', 'testing']
+  const builds = ((await codeMagicHelperInstance.getBuilds()) as any).builds;
+  const STATUS_IN_QUEUE = [
+    'building',
+    'finishing',
+    'fetching',
+    'preparing',
+    'publishing',
+    'queued',
+    'testing',
+  ];
 
-  const CodeMagicBuildQueue = builds.filter((b: any) => STATUS_IN_QUEUE.includes(b.status)).map((b: any) => omit(b, ["config", "artefacts", "buildActions", "commit"]))
-  const CodeMagicBuildQueueSize = CodeMagicBuildQueue.length
-  const CodeMagicRecentBuilds = builds.map((b: any) => omit(b, ["config", "artefacts", "buildActions", "commit"]))
+  const CodeMagicBuildQueue = builds
+    .filter((b: any) => STATUS_IN_QUEUE.includes(b.status))
+    .map((b: any) =>
+      omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
+    );
+  const CodeMagicBuildQueueSize = CodeMagicBuildQueue.length;
+  const CodeMagicRecentBuilds = builds.map((b: any) =>
+    omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
+  );
 
   // collect CodeMagic metrics
-  const row = { createdAt: Date.now(), CodeMagicBuildQueue, CodeMagicRecentBuilds, CodeMagicBuildQueueSize }
+  const row = {
+    createdAt,
+    CodeMagicBuildQueue,
+    CodeMagicRecentBuilds,
+    CodeMagicBuildQueueSize,
+  };
   const db = simpleDb<Partial<Entry>>({
     path: `${config.dataDir}/codemagic.json`,
     logger,
@@ -251,21 +275,25 @@ export default async (
   const logger = simpleLogger();
 
   notificator.registerMultiple([
-    teams({ webhookURL: TEAMS_WEBHOOK_URL }),
-    slack({
+    TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
+    SLACK_WEBHOOK_URL && slack({
       webhookURL: SLACK_WEBHOOK_URL,
       username: 'adash-data-collector script',
     }),
-  ]);
+  ].filter(Boolean));
 
   try {
     // collect data
     status && (await collectStatus(config));
-    bitrise && config.collector.Bitrise && (await collectBitrise(config));
-    gitlab && config.collector.GitLab && (await collectGitLab(config));
-    codemagic && config.collector.CodeMagic && (await collectCodeMagic(config));
+    bitrise &&
+      config.collector.Bitrise.metrics &&
+      (await collectBitrise(config));
+    gitlab && config.collector.GitLab.metrics && (await collectGitLab(config));
+    codemagic &&
+      config.collector.CodeMagic.metrics &&
+      (await collectCodeMagic(config));
     browserstack &&
-      config.collector.BrowserStack &&
+      config.collector.BrowserStack.metrics &&
       (await collectBrowserStack(config));
   } catch (e) {
     logger.error('An errore occurred:', e.message);

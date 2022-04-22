@@ -28,4 +28,4 @@ For a list of available scripts and their usage run the command:
 
 # Configuration
 
-Rename the file config.example.json to config.json and apply the configuration
+check CONFIGURATION.md

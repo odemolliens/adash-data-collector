@@ -3,6 +3,7 @@ import cac from 'cac';
 import collector from './src/scripts/collector';
 import computekpi from './src/scripts/computekpi';
 import notificator from './src/scripts/notificator';
+import packageJson from './package.json';
 
 const cli = cac();
 const logger = simpleLogger();
@@ -21,20 +22,7 @@ async function setupEnvs(envs: Record<string, string>) {
 }
 
 cli
-  .command('computekpi')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await computekpi(config);
-    logger.info('done');
-  });
-
-cli
-  .command('notificator')
+  .command('notificator', 'Check ALL metrics and send notifications')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -52,7 +40,10 @@ cli
   });
 
 cli
-  .command('notificator:monitor')
+  .command(
+    'notificator:monitor',
+    'Check the monitor section and send notifications'
+  )
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -66,7 +57,10 @@ cli
   });
 
 cli
-  .command('notificator:status')
+  .command(
+    'notificator:status',
+    'Check third-parties services status and send notifications'
+  )
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -80,7 +74,10 @@ cli
   });
 
 cli
-  .command('notificator:thresholds')
+  .command(
+    'notificator:thresholds',
+    'Check the thresholds metrics and send notifications'
+  )
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -94,7 +91,7 @@ cli
   });
 
 cli
-  .command('collect')
+  .command('collect', 'Collect ALL metrics')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -107,13 +104,13 @@ cli
       gitlab: true,
       status: true,
       bitrise: true,
-      codemagic: true
+      codemagic: true,
     });
     logger.info('done');
   });
 
 cli
-  .command('collect:browserstack')
+  .command('collect:browserstack', 'Collect BrowserStack metrics')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -128,7 +125,7 @@ cli
   });
 
 cli
-  .command('collect:codemagic')
+  .command('collect:codemagic', 'Collect CodeMagic metrics')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -143,7 +140,7 @@ cli
   });
 
 cli
-  .command('collect:gitlab')
+  .command('collect:gitlab', 'Collect GitLab metrics')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -158,7 +155,22 @@ cli
   });
 
 cli
-  .command('collect:status')
+  .command('collect:bitrise', 'Collect BitRise metrics')
+  .option('--config <path>', 'Use config file')
+  .action(async (options: any) => {
+    const config = await FileHelper.readJSONFile(
+      options.config || './config.json'
+    );
+    setupEnvs(config['envs']);
+
+    await collector(config, {
+      bitrise: true,
+    });
+    logger.info('done');
+  });
+
+cli
+  .command('collect:status', 'Collect third-parties services metrics')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -173,7 +185,7 @@ cli
   });
 
 cli
-  .command('collect:bitrise')
+  .command('computekpi')
   .option('--config <path>', 'Use config file')
   .action(async (options: any) => {
     const config = await FileHelper.readJSONFile(
@@ -181,14 +193,12 @@ cli
     );
     setupEnvs(config['envs']);
 
-    await collector(config, {
-      bitrise: true,
-    });
+    await computekpi(config);
     logger.info('done');
   });
 
 cli.command('').action(cli.outputHelp);
 
 cli.help();
-cli.version('0.0.0');
+cli.version(packageJson.version);
 cli.parse();

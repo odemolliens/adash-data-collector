@@ -19,7 +19,10 @@ export function shorthash(txt: string) {
   return createHash('sha256').update(txt).digest('hex').slice(0, 5);
 }
 
-export const createDailyNotificationID = (notificationTitle: string, createdAt: number) => {
+export const createDailyNotificationID = (
+  notificationTitle: string,
+  createdAt: number
+) => {
   return shorthash(
     notificationTitle.toLowerCase() + new Date(createdAt).toLocaleDateString()
   );

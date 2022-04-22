@@ -43,26 +43,30 @@ export type Config = {
   readonly collector: {
     readonly GitLab?: {
       readonly status: boolean;
+      readonly metrics: boolean;
       readonly projectId: string;
       readonly token: string;
     };
     readonly BrowserStack?: {
       readonly status: boolean;
+      readonly metrics: boolean;
       readonly token: string;
     };
     readonly CodeMagic?: {
       readonly appId: string;
+      readonly metrics: boolean;
       readonly token: string;
     };
     readonly Bitrise?: {
       readonly status: boolean;
+      readonly metrics: boolean;
       readonly appSlug: string;
       readonly token: string;
       readonly workflows: readonly string[];
     };
-    readonly NPM: { readonly status: boolean };
-    readonly Gradle: { readonly status: boolean };
-    readonly CocoaPods: { readonly status: boolean };
+    readonly NPM: { readonly status: boolean; };
+    readonly Gradle: { readonly status: boolean; };
+    readonly CocoaPods: { readonly status: boolean; };
   };
   readonly notificator: {
     readonly monitor: Record<string, Monitor>;

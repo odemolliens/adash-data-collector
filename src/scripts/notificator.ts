@@ -6,9 +6,10 @@ import {
   simpleDb,
   simpleLogger,
   slack,
-  teams
+  teams,
 } from 'adash-ts-helper';
 import { get, isEmpty, last } from 'lodash';
+
 import { createDailyNotificationID, getLastWeekDate } from '../lib/utils';
 import { Config, Severity } from '../types/config';
 
@@ -32,8 +33,6 @@ const FILES = {};
 let DB: any;
 let CONFIG: Config;
 let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
-
-
 
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {

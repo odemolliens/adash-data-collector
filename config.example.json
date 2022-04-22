@@ -2,6 +2,7 @@
   "collector": {
     "GitLab": {
       "status": true,
+      "metrics": true,
       "projectId": "PROJECTID",
       "token": "TOKEN"
     },
@@ -11,7 +12,14 @@
     },
     "Bitrise": {
       "status": true,
+      "metrics": true,
       "appSlug": "APPSLUG",
+      "token": "TOKEN",
+      "workflows": ["dev", "uat", "lut", "prodlike", "store", "codeQuality"]
+    },
+    "CodeMagic": {
+      "appId": "APPID",
+      "metrics": true,
       "token": "TOKEN"
     },
     "NPM": {
@@ -92,7 +100,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "CocoaPods CDN": {
         "key": "CocoaPodsCDNStatus.status",
@@ -100,7 +109,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "NPM": {
         "key": "NPMStatusPackagePublishingStatus.status",
@@ -108,7 +118,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "Bitrise Build Processing": {
         "key": "BitriseStatusBuildProcessingStatus.status",
@@ -116,7 +127,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "Bitrise Step Issue": {
         "key": "BitriseStatusStepIssueStatus.status",
@@ -124,7 +136,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "BrowserStack Live": {
         "key": "BrowserStackLiveStatus.status",
@@ -132,7 +145,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "BrowserStack App-Automate": {
         "key": "BrowserStackAutomateStatus.status",
@@ -140,7 +154,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "Gradle": {
         "key": "GradleStatus.status",
@@ -148,7 +163,8 @@
         "success": "operational",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "Bitrise DEV Build": {
         "key": "BitRiseBuildLastNotCancelledWorkflowDev.status_text",
@@ -156,7 +172,8 @@
         "success": "success",
         "incident": true,
         "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       },
       "Bitrise UAT Build": {
         "key": "BitRiseBuildLastNotCancelledWorkflowUat.status_text",
@@ -164,39 +181,8 @@
         "success": "success",
         "incident": true,
         "notification": true,
-        "severity": "high"
-      },
-      "Bitrise LUT Build": {
-        "key": "BitRiseBuildLastNotCancelledWorkflowLut.status_text",
-        "filename": "bitrise.json",
-        "success": "success",
-        "incident": true,
-        "notification": true,
-        "severity": "high"
-      },
-      "Bitrise PRODLIKE Build": {
-        "key": "BitRiseBuildLastNotCancelledWorkflowProdlike.status_text",
-        "filename": "bitrise.json",
-        "success": "success",
-        "incident": true,
-        "notification": true,
-        "severity": "high"
-      },
-      "Bitrise PROD Build": {
-        "key": "BitRiseBuildLastNotCancelledWorkflowProd.status_text",
-        "filename": "bitrise.json",
-        "success": "success",
-        "incident": true,
-        "notification": true,
-        "severity": "high"
-      },
-      "Bitrise CODEQUALITY Build": {
-        "key": "BitRiseBuildLastNotCancelledWorkflowCodeQuality.status_text",
-        "filename": "bitrise.json",
-        "success": "success",
-        "incident": true,
-        "notification": true,
-        "severity": "high"
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
       }
     },
 
@@ -225,7 +211,6 @@
     "SLACK_WEBHOOK_URL": "WEBHOOK_URL",
     "TEAMS_WEBHOOK_URL": "WEBHOOK_URL",
     "ADASH_GITLAB_PROJECTID_TOKEN": "ADASH_PROJECT_ID",
-    "ADASH_GITLAB_TOKEN": "ADASH_PROJECT_TOKEN",
-    "DATA_REPOSITORY": "GITREPOSITORY_URL"
+    "ADASH_GITLAB_TOKEN": "ADASH_PROJECT_TOKEN"
   }
 }
