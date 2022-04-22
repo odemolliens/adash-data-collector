@@ -1,29 +1,31 @@
+# Configuration
+
 Example of configuration can be found at config.example.json
 
-# Collector
+## Collector
 
 The collector seciont is the main part where you can activate various metrics collection.
 
-## GitLab
+### GitLab
 
 - `status: boolean` Collect status from status.gitlab.com
 - `metrics: boolean` Collect metrics such as MR requests, pipelines etc...
 - `projectId: string` Project id
 - `token: string` API Auth Token
 
-## BrowserStack
+### BrowserStack
 
 - `status: boolean` Collect status from status.browserstack.com
 - `metrics: boolean` Collect metrics such as recent builds
 - `token: string` API Auth Token
 
-## CodeMagic
+### CodeMagic
 
 - `appId: string`
 - `metrics: boolean` Collect metrics such as recent builds
 - `token: string` API Auth Token
 
-## Bitrise
+### Bitrise
 
 - `status: boolean` Collect status from status.bitrise.com
 - `metrics: boolean` Collect metrics such as build queue and workflows builds
@@ -31,21 +33,21 @@ The collector seciont is the main part where you can activate various metrics co
 - `token: string` API Auth Token
 - `workflows: string[]` List of workflows to collect build status from
 
-## NPM
+### NPM
 
 - `status: boolean` Collect status from status.npm.com
 
-## Gradle
+### Gradle
 
 - `status: boolean` Collect status from status.gradle.com
 
-## CocoaPods
+### CocoaPods
 
 - `status: boolean` Collect status from status.cocoapods.com
 
-# Notificator
+## Notificator
 
-## Monitor
+### Monitor
 
 Check and send a notification to the channel/s.
 
@@ -62,7 +64,7 @@ Example of notification:
 }
 ```
 
-## Status
+### Status
 
 Check the status and send a notification to the channel/s, can also open an incident on the project Gitlab's issues page.
 
@@ -82,7 +84,7 @@ Example of notification:
 }
 ```
 
-## Thresholds
+### Thresholds
 
 Check the metrics and when a certain metric go above the threshold, send a notification to the channel/s, can also open an incident on the project Gitlab's issues page.
 
@@ -102,7 +104,7 @@ Example of notification:
 },
 ```
 
-## Channels
+### Channels
 
 Configure one ore more channels to enable notifications.
 The supported platform are Slack and Teams, the notification will be sent using webhook and it must be enabled on the chat provider.
@@ -126,12 +128,12 @@ The supported platform are Slack and Teams, the notification will be sent using 
 }
 ```
 
-# Data dirs
+## Data dirs
 
 - `dataDir` directory to store the collected metrics
 - `kpiDataDir` directory to store the kpi metrics (after the process the kpi json will be stored in the configured `dataDir`)
 
-# Envs
+## Envs
 
 Extra configurations, it's possible to define those configuration as user ENV variables.
 
