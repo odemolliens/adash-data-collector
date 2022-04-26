@@ -12,7 +12,7 @@ if (process.env.DEBUG_NETWORK) {
   DebugHelper.activateDebugNetwork();
 }
 
-async function setupEnvs(envs: Record<string, string>) {
+async function setupEnvs(envs: Record<string, string> = {}) {
   for (const [key, value] of Object.entries(envs)) {
     if (!(key in process.env)) {
       process.env[key] = value as string;
