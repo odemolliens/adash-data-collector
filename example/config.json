@@ -1,0 +1,155 @@
+{
+  "collector": {
+    "GitLab": {
+      "status": true,
+      "metrics": true,
+      "projectId": "278964",
+      "token": "REDACTED"
+    },
+    "BrowserStack": {
+      "status": true
+    },
+    "Bitrise": {
+      "status": true
+    },
+    "CodeMagic": {
+      "status": true
+    },
+    "NPM": {
+      "status": true
+    },
+    "Gradle": {
+      "status": true
+    },
+    "CocoaPods": {
+      "status": true
+    }
+  },
+  "notificator": {
+    "monitor": {
+      "GitLab Open MR": {
+        "key": "GitlabOpenMergeRequestsCount",
+        "filename": "gitlab.json",
+        "notification": true,
+        "channels": []
+      },
+      "GitLab Closed MR last 24H": {
+        "key": "GitlabClosedMergeRequestsCount",
+        "filename": "gitlab.json",
+        "notification": true,
+        "channels": []
+      }
+    },
+    "thresholds": {
+      "GitLab Jobs": {
+        "key": "GitlabJobQueueSize",
+        "filename": "gitlab.json",
+        "max": 10,
+        "incident": false,
+        "notification": true,
+        "severity": "low",
+        "channels": []
+      },
+      "GitLab Pipelines": {
+        "key": "GitlabPipelineQueueSize",
+        "filename": "gitlab.json",
+        "max": 20,
+        "incident": false,
+        "notification": true,
+        "severity": "medium",
+        "channels": []
+      },
+      "GitLab Open MR": {
+        "key": "GitlabOpenMergeRequestsCount",
+        "filename": "gitlab.json",
+        "max": 20,
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      }
+    },
+
+    "status": {
+      "GitLab": {
+        "key": "Gitlab.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "CocoaPods CDN": {
+        "key": "CocoaPods CDN.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "NPM": {
+        "key": "NPM Package Publishing.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "Bitrise Build Processing": {
+        "key": "Bitrise Build Processing.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "Bitrise Step Issue": {
+        "key": "Bitrise Step Issue.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "BrowserStack Live": {
+        "key": "BrowserStack Live.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "BrowserStack App-Automate": {
+        "key": "BrowserStack AppAutomate.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      },
+      "Gradle": {
+        "key": "Gradle.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": false,
+        "notification": true,
+        "severity": "high",
+        "channels": []
+      }
+    },
+
+    "channels": {
+      "slack": {},
+
+      "teams": {}
+    }
+  },
+  "dataDir": "./data"
+}
