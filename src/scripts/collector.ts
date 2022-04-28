@@ -156,9 +156,7 @@ const collectBrowserStack = async (config: Config) => {
     createdAt,
     BrowserStackAppAutomateBuilds: (
       await browserstackHelperInstance.getBuilds()
-    )
-      //.filter((d) => d.automation_build.name.includes('MyPXS'))
-      .slice(0, 15), // last 15 recent builds
+    ).slice(0, 15), // last 15 recent builds
   };
 
   // collect Status
