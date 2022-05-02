@@ -30,7 +30,14 @@ const logger = simpleLogger();
 const last6Months = getLast6MonthsDate();
 const createdAt = Date.now();
 
-const collectStatus = async (config: Config) => {
+export type CollectorOptions = {
+  readonly config: Config;
+  readonly resetdb?: boolean;
+};
+
+const collectStatus = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
+
   const row = {
     createdAt,
   };
@@ -90,8 +97,12 @@ const collectStatus = async (config: Config) => {
     path: `${config.dataDir}/status.json`,
     logger,
   });
+
   await db.init();
-  //await db.reset();
+
+  if (resetdb) {
+    await db.reset();
+  }
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
@@ -99,7 +110,9 @@ const collectStatus = async (config: Config) => {
   await db.commit();
 };
 
-const collectGitLab = async (config: Config) => {
+const collectGitLab = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
+
   const gitlabHelper = GitLabHelper({
     projectId: config.collector.GitLab.projectId,
     defaultHeaders: {
@@ -109,20 +122,27 @@ const collectGitLab = async (config: Config) => {
 
   const GitLabOpenMergeRequests = await gitlabHelper.getMergeRequests({
     state: GitLabHelperModule.MERGE_REQUEST_STATE_OPENED,
+    per_page: 100,
   });
 
   const GitLabClosedMergeRequests = await gitlabHelper.getMergeRequests({
     state: GitLabHelperModule.MERGE_REQUEST_STATE_CLOSED,
     updated_after: getYesterdayDate(),
+    per_page: 100,
   });
+
+  const GitlabPipelineQueue = await gitlabHelper.getPipelineQueue({
+    per_page: 100,
+  });
+  const GitlabJobQueue = await gitlabHelper.getJobQueue();
 
   const row = {
     createdAt,
-    GitlabPipelineQueue: await gitlabHelper.getPipelineQueue(),
-    GitlabPipelineQueueSize: (await gitlabHelper.getPipelineQueue()).length,
+    GitlabPipelineQueue,
+    GitlabPipelineQueueSize: GitlabPipelineQueue.length,
     GitlabPipelineSchedules: await gitlabHelper.getPipelineSchedules(),
-    GitlabJobQueue: await gitlabHelper.getJobQueue(),
-    GitlabJobQueueSize: (await gitlabHelper.getJobQueue()).length,
+    GitlabJobQueue,
+    GitlabJobQueueSize: GitlabJobQueue.length,
     GitLabOpenMergeRequests,
     GitlabOpenMergeRequestsCount: GitLabOpenMergeRequests.length,
     GitLabClosedMergeRequests,
@@ -134,8 +154,12 @@ const collectGitLab = async (config: Config) => {
     path: `${config.dataDir}/gitlab.json`,
     logger,
   });
+
   await db.init();
-  //await db.reset();
+
+  if (resetdb) {
+    await db.reset();
+  }
 
   // filter out rows older than 6 months ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
@@ -143,7 +167,8 @@ const collectGitLab = async (config: Config) => {
   await db.commit();
 };
 
-const collectBrowserStack = async (config: Config) => {
+const collectBrowserStack = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
   const [username, password] = config.collector.BrowserStack.token.split(':');
   const browserstackHelperInstance = BrowserStackHelper({
     auth: {
@@ -164,8 +189,12 @@ const collectBrowserStack = async (config: Config) => {
     path: `${config.dataDir}/browserstack.json`,
     logger,
   });
+
   await db.init();
-  //await db.reset()
+
+  if (resetdb) {
+    await db.reset();
+  }
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
@@ -173,7 +202,8 @@ const collectBrowserStack = async (config: Config) => {
   await db.commit();
 };
 
-const collectBitrise = async (config: Config) => {
+const collectBitrise = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
   const bitriseHelperInstance = BitriseHelper({
     defaultHeaders: {
       authorization: `token ${config.collector.Bitrise.token}`,
@@ -202,8 +232,12 @@ const collectBitrise = async (config: Config) => {
     path: `${config.dataDir}/bitrise.json`,
     logger,
   });
+
   await db.init();
-  //await db.reset();
+
+  if (resetdb) {
+    await db.reset();
+  }
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
@@ -211,7 +245,8 @@ const collectBitrise = async (config: Config) => {
   await db.commit();
 };
 
-const collectCodeMagic = async (config: Config) => {
+const collectCodeMagic = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
   const codeMagicHelperInstance = CodeMagicHelper({
     defaultHeaders: { 'x-auth-token': config.collector.CodeMagic.token },
   });
@@ -231,11 +266,11 @@ const collectCodeMagic = async (config: Config) => {
     .filter((b: any) => STATUS_IN_QUEUE.includes(b.status))
     .map((b: any) =>
       omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
-    );
+    )
   const CodeMagicBuildQueueSize = CodeMagicBuildQueue.length;
   const CodeMagicRecentBuilds = builds.map((b: any) =>
     omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
-  );
+  ).slice(0, 15) // last 15 recent builds
 
   // collect CodeMagic metrics
   const row = {
@@ -248,8 +283,12 @@ const collectCodeMagic = async (config: Config) => {
     path: `${config.dataDir}/codemagic.json`,
     logger,
   });
+
   await db.init();
-  //await db.reset();
+
+  if (resetdb) {
+    await db.reset();
+  }
 
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
@@ -257,42 +296,34 @@ const collectCodeMagic = async (config: Config) => {
   await db.commit();
 };
 
-type CollectorProps = {
-  readonly browserstack?: boolean;
-  readonly gitlab?: boolean;
-  readonly bitrise?: boolean;
-  readonly status?: boolean;
-  readonly codemagic?: boolean;
-};
-
-export default async (
-  config: Config,
-  { browserstack, gitlab, bitrise, status, codemagic }: CollectorProps
-) => {
+export default async (options: CollectorOptions) => {
+  const { config } = options;
   const { TEAMS_WEBHOOK_URL, SLACK_WEBHOOK_URL } = process.env;
   const logger = simpleLogger();
 
-  notificator.registerMultiple([
-    TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
-    SLACK_WEBHOOK_URL && slack({
-      webhookURL: SLACK_WEBHOOK_URL,
-      username: 'adash-data-collector script',
-    }),
-  ].filter(Boolean));
+  notificator.registerMultiple(
+    [
+      TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
+      SLACK_WEBHOOK_URL &&
+      slack({
+        webhookURL: SLACK_WEBHOOK_URL,
+        username: 'adash-data-collector script',
+      }),
+    ].filter(Boolean)
+  );
 
   try {
     // collect data
-    status && (await collectStatus(config));
-    bitrise &&
-      config.collector.Bitrise.metrics &&
-      (await collectBitrise(config));
-    gitlab && config.collector.GitLab.metrics && (await collectGitLab(config));
-    codemagic &&
-      config.collector.CodeMagic.metrics &&
-      (await collectCodeMagic(config));
-    browserstack &&
-      config.collector.BrowserStack.metrics &&
-      (await collectBrowserStack(config));
+    await collectStatus(options);
+
+    config.collector.Bitrise.metrics && (await collectBitrise(options));
+
+    config.collector.GitLab.metrics && (await collectGitLab(options));
+
+    config.collector.CodeMagic.metrics && (await collectCodeMagic(options));
+
+    config.collector.BrowserStack.metrics &&
+      (await collectBrowserStack(options));
   } catch (e) {
     logger.error('An errore occurred:', e.message);
     await notificator.notify('Error', 'adash-data-collector: ' + e);

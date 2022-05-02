@@ -64,9 +64,9 @@ export type Config = {
       readonly token: string;
       readonly workflows: readonly string[];
     };
-    readonly NPM: { readonly status: boolean; };
-    readonly Gradle: { readonly status: boolean; };
-    readonly CocoaPods: { readonly status: boolean; };
+    readonly NPM: { readonly status: boolean };
+    readonly Gradle: { readonly status: boolean };
+    readonly CocoaPods: { readonly status: boolean };
   };
   readonly notificator: {
     readonly monitor: Record<string, Monitor>;
