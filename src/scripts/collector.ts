@@ -326,6 +326,6 @@ export default async (options: CollectorOptions) => {
       (await collectBrowserStack(options));
   } catch (e) {
     logger.error('An errore occurred:', e.message);
-    await notificator.notify('Error', 'adash-data-collector: ' + e);
+    await notificator.notify('Error', 'adash-data-collector: ' + JSON.stringify(e));
   }
 };
