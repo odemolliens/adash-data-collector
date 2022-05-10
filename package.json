@@ -16,8 +16,7 @@
   "dependencies": {
     "adash-ts-helper": "1.0.3",
     "cac": "^6.7.11",
-    "lodash": "^4.17.21",
-    "simple-git": "^2.47.0"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.178",
