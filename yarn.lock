@@ -190,10 +190,10 @@ acorn@^7.4.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
-adash-ts-helper@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/adash-ts-helper/-/adash-ts-helper-1.0.3.tgz#f07e5d4b38626e7f9f111589f72ad4c4a65344d2"
-  integrity sha512-EMsiFx0g1xM55aSNc0CUrfK63uAXeKF5ndoOv3Zg0rF8PIQA+plm7bZBlLMI8Bd5pXCyy3SIRHn/gVaVK9xQQA==
+adash-ts-helper@1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/adash-ts-helper/-/adash-ts-helper-1.0.5.tgz#bb635cbecc8ab94c3b4b32117644d94c91202957"
+  integrity sha512-MLPp+TCVDrgHwwHPqG+KSxR5uS4X9LrpeYVn4g6ejaxrl/TY92pJxzjiywSG17gn4a6yai5rWgbCQw7O3MADWQ==
   dependencies:
     "@bitauth/libauth" "1.18.1"
     axios "0.26.0"

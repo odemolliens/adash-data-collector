@@ -18,7 +18,11 @@ import {
 } from 'adash-ts-helper';
 import { omit } from 'lodash';
 
-import { getLast6MonthsDate, getYesterdayDate } from '../lib/utils';
+import {
+  getLast1MonthDate,
+  getLast6MonthsDate,
+  getYesterdayDate,
+} from '../lib/utils';
 import { Config } from '../types/config';
 
 type Entry = {
@@ -27,6 +31,7 @@ type Entry = {
 
 const CANCELLED = 4;
 const logger = simpleLogger();
+const last1Month = getLast1MonthDate();
 const last6Months = getLast6MonthsDate();
 const createdAt = Date.now();
 
@@ -104,11 +109,36 @@ const collectStatus = async (options: CollectorOptions) => {
     await db.reset();
   }
 
+  await rotateDb(
+    `${config.dataDir}/status.json`,
+    (row) => new Date(row.createdAt) < last1Month
+  );
+
   // filter out rows older than 7 days ago
   await db.filter((row) => new Date(row.createdAt) >= last6Months);
   await db.insert(row);
   await db.commit();
 };
+
+async function rotateDb(dbPath: string, filterFn: (row: any) => void) {
+  const db = simpleDb<Partial<Entry>>({
+    path: dbPath,
+    logger,
+  });
+
+  await db.init();
+
+  const filtered = db.data().filter(filterFn);
+  const dbBkp = simpleDb<Partial<Entry>>({
+    path: `${dbPath.replace(
+      '.json',
+      ''
+    )}_${last1Month.getMonth()}-${last1Month.getFullYear()}.bkp.json`,
+  });
+  await dbBkp.init();
+  await dbBkp.insertAll(filtered);
+  await dbBkp.commit();
+}
 
 const collectGitLab = async (options: CollectorOptions) => {
   const { config, resetdb } = options;
@@ -161,8 +191,13 @@ const collectGitLab = async (options: CollectorOptions) => {
     await db.reset();
   }
 
-  // filter out rows older than 6 months ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await rotateDb(
+    `${config.dataDir}/gitlab.json`,
+    (row) => new Date(row.createdAt) < last1Month
+  );
+
+  // filter out rows older than 1 months ago
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
@@ -196,8 +231,13 @@ const collectBrowserStack = async (options: CollectorOptions) => {
     await db.reset();
   }
 
+  await rotateDb(
+    `${config.dataDir}/browserstack.json`,
+    (row) => new Date(row.createdAt) < last1Month
+  );
+
   // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
@@ -239,8 +279,13 @@ const collectBitrise = async (options: CollectorOptions) => {
     await db.reset();
   }
 
+  await rotateDb(
+    `${config.dataDir}/bitrise.json`,
+    (row) => new Date(row.createdAt) < last1Month
+  );
+
   // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
@@ -266,11 +311,11 @@ const collectCodeMagic = async (options: CollectorOptions) => {
     .filter((b: any) => STATUS_IN_QUEUE.includes(b.status))
     .map((b: any) =>
       omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
-    )
+    );
   const CodeMagicBuildQueueSize = CodeMagicBuildQueue.length;
-  const CodeMagicRecentBuilds = builds.map((b: any) =>
-    omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
-  ).slice(0, 15) // last 15 recent builds
+  const CodeMagicRecentBuilds = builds
+    .map((b: any) => omit(b, ['config', 'artefacts', 'buildActions', 'commit']))
+    .slice(0, 15); // last 15 recent builds
 
   // collect CodeMagic metrics
   const row = {
@@ -290,8 +335,13 @@ const collectCodeMagic = async (options: CollectorOptions) => {
     await db.reset();
   }
 
+  await rotateDb(
+    `${config.dataDir}/codemagic.json`,
+    (row) => new Date(row.createdAt) < last1Month
+  );
+
   // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
@@ -305,10 +355,10 @@ export default async (options: CollectorOptions) => {
     [
       TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
       SLACK_WEBHOOK_URL &&
-      slack({
-        webhookURL: SLACK_WEBHOOK_URL,
-        username: 'adash-data-collector script',
-      }),
+        slack({
+          webhookURL: SLACK_WEBHOOK_URL,
+          username: 'adash-data-collector script',
+        }),
     ].filter(Boolean)
   );
 
@@ -326,6 +376,9 @@ export default async (options: CollectorOptions) => {
       (await collectBrowserStack(options));
   } catch (e) {
     logger.error('An errore occurred:', e.message);
-    await notificator.notify('Error', 'adash-data-collector: ' + JSON.stringify(e));
+    await notificator.notify(
+      'Error',
+      'adash-data-collector: ' + JSON.stringify(e)
+    );
   }
 };

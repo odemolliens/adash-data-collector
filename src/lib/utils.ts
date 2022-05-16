@@ -5,6 +5,11 @@ export function getLastWeekDate() {
   return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
 }
 
+export function getLast1MonthDate() {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+}
+
 export function getLast6MonthsDate() {
   const today = new Date();
   return new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
