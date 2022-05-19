@@ -20,7 +20,6 @@ import { omit } from 'lodash';
 
 import {
   getLast1MonthDate,
-  getLast6MonthsDate,
   getYesterdayDate,
 } from '../lib/utils';
 import { Config } from '../types/config';
@@ -32,7 +31,6 @@ type Entry = {
 const CANCELLED = 4;
 const logger = simpleLogger();
 const last1Month = getLast1MonthDate();
-const last6Months = getLast6MonthsDate();
 const createdAt = Date.now();
 
 export type CollectorOptions = {
@@ -115,7 +113,7 @@ const collectStatus = async (options: CollectorOptions) => {
   );
 
   // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
@@ -355,10 +353,10 @@ export default async (options: CollectorOptions) => {
     [
       TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
       SLACK_WEBHOOK_URL &&
-        slack({
-          webhookURL: SLACK_WEBHOOK_URL,
-          username: 'adash-data-collector script',
-        }),
+      slack({
+        webhookURL: SLACK_WEBHOOK_URL,
+        username: 'adash-data-collector script',
+      }),
     ].filter(Boolean)
   );
 
