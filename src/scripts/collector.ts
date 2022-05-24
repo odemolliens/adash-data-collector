@@ -202,7 +202,7 @@ const collectGitLab = async (options: CollectorOptions) => {
   await db.commit();
 
   const packed = jsonpack.pack(db.data());
-  await FileHelper.writeFile(packed, `${config.dataDir}/gitlab.txt`);
+  await FileHelper.writeFile(packed, `${config.dataDir}/gitlab.db`);
 };
 
 const collectBrowserStack = async (options: CollectorOptions) => {
