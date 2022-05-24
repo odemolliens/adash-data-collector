@@ -9,7 +9,7 @@ import {
   teams,
 } from 'adash-ts-helper';
 import { get, isEmpty, last } from 'lodash';
-
+import jsonpack from 'jsonpack/main'
 import { createDailyNotificationID, getLastWeekDate } from '../lib/utils';
 import { Config, Severity } from '../types/config';
 
@@ -37,7 +37,7 @@ let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {
     FILES[filename] = last(
-      await FileHelper.readJSONFile(`${CONFIG.dataDir}/${filename}`)
+      jsonpack.unpack(await FileHelper.readFile(`${CONFIG.dataDir}/${filename}`)).toString()
     )!;
   }
   return FILES[filename];
@@ -238,7 +238,7 @@ export default async (
     await DB.filter((row) => new Date(row.createdAt) >= lastWeekDate);
     await DB.commit();
     await FileHelper.writeFile(
-      config.notificator.thresholds,
+      jsonpack.pack(config.notificator.thresholds),
       `${config.dataDir}/thresholds.db`
     );
   } catch (e) {
