@@ -8,7 +8,7 @@ import { Config } from '../types/config';
 export default async function (config: Config) {
   const fPaths = fs
     .readdirSync(`${config.dataDir}`, { withFileTypes: true })
-    .filter((item) => !item.isDirectory() && item.name.includes('.json'))
+    .filter((item) => !item.isDirectory() && item.name.includes('.json') && item.name.includes('.bkp'))
     .map((item) => item.name);
 
   for (const fPath of fPaths) {
