@@ -14,11 +14,13 @@
     "node": ">=10"
   },
   "dependencies": {
-    "adash-ts-helper": "1.0.5",
+    "adash-ts-helper": "1.0.6",
     "cac": "^6.7.11",
+    "jsonpack": "^1.1.5",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@types/jsonpack": "^1.1.1",
     "@types/lodash": "^4.14.178",
     "@types/node": "^17.0.18",
     "@typescript-eslint/eslint-plugin": "^4.0.1",

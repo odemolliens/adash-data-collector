@@ -190,10 +190,10 @@ acorn@^7.4.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
-adash-ts-helper@1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/adash-ts-helper/-/adash-ts-helper-1.0.5.tgz#bb635cbecc8ab94c3b4b32117644d94c91202957"
-  integrity sha512-MLPp+TCVDrgHwwHPqG+KSxR5uS4X9LrpeYVn4g6ejaxrl/TY92pJxzjiywSG17gn4a6yai5rWgbCQw7O3MADWQ==
+adash-ts-helper@1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/adash-ts-helper/-/adash-ts-helper-1.0.6.tgz#2ab676a9315cee66e82d21ae6a9928f407e9eb99"
+  integrity sha512-KUmiq6HxnKgO53zSI8s3zylug4ooHoks0Z5LcqHE27e5VNta+2vkiPlHZBLgmBkP+MLe1kgR3LpK9HDqlWippA==
   dependencies:
     "@bitauth/libauth" "1.18.1"
     axios "0.26.0"
@@ -201,6 +201,7 @@ adash-ts-helper@1.0.5:
     cheerio "1.0.0-rc.10"
     colors "1.4.0"
     global-agent "3.0.0"
+    jsonpack "^1.1.5"
     lodash "^4.17.21"
     nock "13.1.4"
     simple-git "2.47.0"
@@ -1260,6 +1261,11 @@ json5@^1.0.1:
   integrity sha512-aKS4WQjPenRxiQsC93MNfjx+nbF4PAdYzmd/1JIj8HYzqfbu86beTuNgXDzPknWk0n0uARlyewZo4s++ES36Ow==
   dependencies:
     minimist "^1.2.0"
+
+jsonpack@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/jsonpack/-/jsonpack-1.1.5.tgz#d42b0dcfd91ac58ef3110f96d2c599404c3dc27c"
+  integrity sha1-1CsNz9kaxY7zEQ+W0sWZQEw9wnw=
 
 levn@^0.4.1:
   version "0.4.1"

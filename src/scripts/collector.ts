@@ -5,6 +5,7 @@ import {
   BrowserStackStatusHelper,
   CocoaPodsStatusHelper,
   CodeMagicHelper,
+  FileHelper,
   GitLabHelper,
   GitLabHelperModule,
   GitlabStatusHelper,
@@ -16,12 +17,10 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
+import jsonpack from 'jsonpack';
 import { omit } from 'lodash';
 
-import {
-  getLast1MonthDate,
-  getYesterdayDate,
-} from '../lib/utils';
+import { getLast1MonthDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
 
 type Entry = {
@@ -97,8 +96,9 @@ const collectStatus = async (options: CollectorOptions) => {
 
   // collect Status
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/status.json`,
+    path: `${config.dataDir}/status.db`,
     logger,
+    compress: true
   });
 
   await db.init();
@@ -108,7 +108,7 @@ const collectStatus = async (options: CollectorOptions) => {
   }
 
   await rotateDb(
-    `${config.dataDir}/status.json`,
+    `${config.dataDir}/status.db`,
     (row) => new Date(row.createdAt) < last1Month
   );
 
@@ -122,6 +122,7 @@ async function rotateDb(dbPath: string, filterFn: (row: any) => void) {
   const db = simpleDb<Partial<Entry>>({
     path: dbPath,
     logger,
+    compress: true
   });
 
   await db.init();
@@ -129,9 +130,9 @@ async function rotateDb(dbPath: string, filterFn: (row: any) => void) {
   const filtered = db.data().filter(filterFn);
   const dbBkp = simpleDb<Partial<Entry>>({
     path: `${dbPath.replace(
-      '.json',
+      '.db',
       ''
-    )}_${last1Month.getMonth()}-${last1Month.getFullYear()}.bkp.json`,
+    )}_${last1Month.getMonth()}-${last1Month.getFullYear()}.bkp.db`,
   });
   await dbBkp.init();
   await dbBkp.insertAll(filtered);
@@ -179,8 +180,9 @@ const collectGitLab = async (options: CollectorOptions) => {
 
   // collect Status
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/gitlab.json`,
+    path: `${config.dataDir}/gitlab.db`,
     logger,
+    compress: true
   });
 
   await db.init();
@@ -190,7 +192,7 @@ const collectGitLab = async (options: CollectorOptions) => {
   }
 
   await rotateDb(
-    `${config.dataDir}/gitlab.json`,
+    `${config.dataDir}/gitlab.db`,
     (row) => new Date(row.createdAt) < last1Month
   );
 
@@ -198,6 +200,9 @@ const collectGitLab = async (options: CollectorOptions) => {
   await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
+
+  const packed = jsonpack.pack(db.data());
+  await FileHelper.writeFile(packed, `${config.dataDir}/gitlab.txt`);
 };
 
 const collectBrowserStack = async (options: CollectorOptions) => {
@@ -219,8 +224,9 @@ const collectBrowserStack = async (options: CollectorOptions) => {
 
   // collect Status
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/browserstack.json`,
+    path: `${config.dataDir}/browserstack.db`,
     logger,
+    compress: true
   });
 
   await db.init();
@@ -230,7 +236,7 @@ const collectBrowserStack = async (options: CollectorOptions) => {
   }
 
   await rotateDb(
-    `${config.dataDir}/browserstack.json`,
+    `${config.dataDir}/browserstack.db`,
     (row) => new Date(row.createdAt) < last1Month
   );
 
@@ -267,8 +273,9 @@ const collectBitrise = async (options: CollectorOptions) => {
 
   // collect Status
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/bitrise.json`,
+    path: `${config.dataDir}/bitrise.db`,
     logger,
+    compress: true
   });
 
   await db.init();
@@ -278,7 +285,7 @@ const collectBitrise = async (options: CollectorOptions) => {
   }
 
   await rotateDb(
-    `${config.dataDir}/bitrise.json`,
+    `${config.dataDir}/bitrise.db`,
     (row) => new Date(row.createdAt) < last1Month
   );
 
@@ -323,8 +330,9 @@ const collectCodeMagic = async (options: CollectorOptions) => {
     CodeMagicBuildQueueSize,
   };
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/codemagic.json`,
+    path: `${config.dataDir}/codemagic.db`,
     logger,
+    compress: true
   });
 
   await db.init();
@@ -334,7 +342,7 @@ const collectCodeMagic = async (options: CollectorOptions) => {
   }
 
   await rotateDb(
-    `${config.dataDir}/codemagic.json`,
+    `${config.dataDir}/codemagic.db`,
     (row) => new Date(row.createdAt) < last1Month
   );
 

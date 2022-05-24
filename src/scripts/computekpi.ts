@@ -31,8 +31,9 @@ export default async (config: Config) => {
   try {
     // collect KPI
     const db = simpleDb<Partial<any>>({
-      path: `${config.dataDir}/kpie2e.json`,
+      path: `${config.dataDir}/kpie2e.db`,
       logger,
+      compress: true
     });
     await db.init();
     //await db.reset();
