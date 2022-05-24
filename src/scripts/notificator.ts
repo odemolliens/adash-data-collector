@@ -218,7 +218,8 @@ export default async (
 
   try {
     DB = simpleDb<Notification>({
-      path: `${config.dataDir}/notifications.json`,
+      path: `${config.dataDir}/notifications.db`,
+      compress: true
     });
 
     CONFIG = config;
@@ -238,7 +239,7 @@ export default async (
     await DB.commit();
     await FileHelper.writeFile(
       config.notificator.thresholds,
-      `${config.dataDir}/thresholds.json`
+      `${config.dataDir}/thresholds.db`
     );
   } catch (e) {
     logger.error('An errore occurred:', e.message);
