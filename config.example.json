@@ -1,0 +1,216 @@
+{
+  "collector": {
+    "GitLab": {
+      "status": true,
+      "metrics": true,
+      "projectId": "PROJECTID",
+      "token": "TOKEN"
+    },
+    "BrowserStack": {
+      "status": true,
+      "token": "USERNAME:PASSWORD"
+    },
+    "Bitrise": {
+      "status": true,
+      "metrics": true,
+      "appSlug": "APPSLUG",
+      "token": "TOKEN",
+      "workflows": ["dev", "uat", "lut", "prodlike", "store", "codeQuality"]
+    },
+    "CodeMagic": {
+      "appId": "APPID",
+      "metrics": true,
+      "token": "TOKEN"
+    },
+    "NPM": {
+      "status": true
+    },
+    "Gradle": {
+      "status": true
+    },
+    "CocoaPods": {
+      "status": true
+    }
+  },
+  "notificator": {
+    "monitor": {
+      "GitLab Open MR": {
+        "key": "GitlabOpenMergeRequestsCount",
+        "filename": "gitlab.json",
+        "notification": true,
+        "channels": ["#slack1", "#slack2", "#teams1"]
+      },
+      "GitLab Closed MR last 24H": {
+        "key": "GitlabClosedMergeRequestsCount",
+        "filename": "gitlab.json",
+        "notification": true,
+        "channels": ["#slack1", "#teams1"]
+      }
+    },
+
+    "thresholds": {
+      "GitLab Jobs": {
+        "key": "GitlabJobQueueSize",
+        "filename": "gitlab.json",
+        "max": 2,
+        "incident": true,
+        "notification": true,
+        "severity": "low",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "GitLab Pipelines": {
+        "key": "GitlabPipelineQueueSize",
+        "filename": "gitlab.json",
+        "max": 12,
+        "incident": true,
+        "notification": true,
+        "severity": "medium",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "GitLab Open MR": {
+        "key": "GitlabOpenMergeRequestsCount",
+        "filename": "gitlab.json",
+        "max": 12,
+        "incident": true,
+        "notification": true,
+        "severity": "high"
+      },
+      "Bitrise Builds": {
+        "key": "BitriseQueueSize",
+        "filename": "bitrise.json",
+        "max": 3,
+        "incident": true,
+        "notification": true,
+        "severity": "high"
+      },
+      "Bitrise Durations": {
+        "key": "BrowserStackAppAutomateBuilds[0].automation_build.duration",
+        "filename": "browserstack.json",
+        "max": 3600,
+        "incident": true,
+        "notification": true,
+        "severity": "high"
+      }
+    },
+
+    "status": {
+      "GitLab": {
+        "key": "GitlabStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "CocoaPods CDN": {
+        "key": "CocoaPodsCDNStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "NPM": {
+        "key": "NPMStatusPackagePublishingStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "Bitrise Build Processing": {
+        "key": "BitriseStatusBuildProcessingStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "Bitrise Step Issue": {
+        "key": "BitriseStatusStepIssueStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "BrowserStack Live": {
+        "key": "BrowserStackLiveStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "BrowserStack App-Automate": {
+        "key": "BrowserStackAutomateStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "Gradle": {
+        "key": "GradleStatus.status",
+        "filename": "status.json",
+        "success": "operational",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "Bitrise DEV Build": {
+        "key": "BitRiseBuildLastNotCancelledWorkflowDev.status_text",
+        "filename": "bitrise.json",
+        "success": "success",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      },
+      "Bitrise UAT Build": {
+        "key": "BitRiseBuildLastNotCancelledWorkflowUat.status_text",
+        "filename": "bitrise.json",
+        "success": "success",
+        "incident": true,
+        "notification": true,
+        "severity": "high",
+        "channels": ["#slack1", "#teams1"]
+      }
+    },
+
+    "channels": {
+      "slack": {
+        "#slack1": {
+          "username": "adash-data-collector script",
+          "webhookURL": "WEBHOOK_URL"
+        },
+        "#slack2": {
+          "username": "adash-data-collector script",
+          "webhookURL": "WEBHOOK_URL"
+        }
+      },
+
+      "teams": {
+        "#teams1": {
+          "webhookURL": "WEBHOOK_URL"
+        }
+      }
+    }
+  },
+  "dataDir": "./data",
+  "kpiDataDir": "./kpiDataDir",
+  "envs": {
+    "SLACK_WEBHOOK_URL": "WEBHOOK_URL",
+    "TEAMS_WEBHOOK_URL": "WEBHOOK_URL",
+    "ADASH_GITLAB_PROJECTID_TOKEN": "ADASH_PROJECT_ID",
+    "ADASH_GITLAB_TOKEN": "ADASH_PROJECT_TOKEN"
+  }
+}
