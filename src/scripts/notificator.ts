@@ -37,7 +37,7 @@ let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {
     FILES[filename] = last(
-      jsonpack.unpack(await FileHelper.readFile(`${CONFIG.dataDir}/${filename}`)).toString()
+      jsonpack.unpack((await FileHelper.readFile(`${CONFIG.dataDir}/${filename}`)).toString())
     )!;
   }
   return FILES[filename];
