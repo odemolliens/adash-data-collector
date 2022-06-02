@@ -1,10 +1,9 @@
 import { DebugHelper, FileHelper, simpleLogger } from 'adash-ts-helper';
 import cac from 'cac';
+import packageJson from './package.json';
 import collector, { CollectorOptions } from './src/scripts/collector';
 import computekpi from './src/scripts/computekpi';
 import notificator from './src/scripts/notificator';
-import packdbs from './src/scripts/packdbs';
-import packageJson from './package.json';
 
 const cli = cac();
 const logger = simpleLogger();
@@ -21,19 +20,6 @@ async function setupEnvs(envs: Record<string, string> = {}) {
     }
   }
 }
-
-cli
-  .command('packdbs', 'Convert JSON dbs to JSON packed dbs')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-
-    setupEnvs(config['envs']);
-
-    await packdbs(config);
-    logger.info('done');
-  });
 
 cli
   .command('notificator', 'Check ALL metrics and send notifications')

@@ -17,8 +17,7 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
-import jsonpack from 'jsonpack';
-import { omit } from 'lodash';
+import { isEmpty, omit } from 'lodash';
 
 import { getLast1MonthDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
@@ -94,11 +93,11 @@ const collectStatus = async (options: CollectorOptions) => {
     };
   }
 
-  // collect Status
+  const dbPath = `${config.dataDir}/status.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/status.db`,
+    path: dbPath,
     logger,
-    compress: true
+    compress: true,
   });
 
   await db.init();
@@ -107,12 +106,9 @@ const collectStatus = async (options: CollectorOptions) => {
     await db.reset();
   }
 
-  await rotateDb(
-    `${config.dataDir}/status.db`,
-    (row) => new Date(row.createdAt) < last1Month
-  );
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
 
-  // filter out rows older than 7 days ago
+  // filter out rows older than 1 month
   await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
@@ -122,7 +118,7 @@ async function rotateDb(dbPath: string, filterFn: (row: any) => void) {
   const db = simpleDb<Partial<Entry>>({
     path: dbPath,
     logger,
-    compress: true
+    compress: true,
   });
 
   await db.init();
@@ -178,11 +174,10 @@ const collectGitLab = async (options: CollectorOptions) => {
     GitlabClosedMergeRequestsCount: GitLabClosedMergeRequests.length,
   };
 
-  // collect Status
   const db = simpleDb<Partial<Entry>>({
     path: `${config.dataDir}/gitlab.db`,
     logger,
-    compress: true
+    compress: true,
   });
 
   await db.init();
@@ -196,13 +191,10 @@ const collectGitLab = async (options: CollectorOptions) => {
     (row) => new Date(row.createdAt) < last1Month
   );
 
-  // filter out rows older than 1 months ago
+  // filter out rows older than 1 month
   await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
-
-  const packed = jsonpack.pack(db.data());
-  await FileHelper.writeFile(packed, `${config.dataDir}/gitlab.db`);
 };
 
 const collectBrowserStack = async (options: CollectorOptions) => {
@@ -222,11 +214,11 @@ const collectBrowserStack = async (options: CollectorOptions) => {
     ).slice(0, 15), // last 15 recent builds
   };
 
-  // collect Status
+  const dbPath = `${config.dataDir}/browserstack.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/browserstack.db`,
+    path: dbPath,
     logger,
-    compress: true
+    compress: true,
   });
 
   await db.init();
@@ -235,12 +227,9 @@ const collectBrowserStack = async (options: CollectorOptions) => {
     await db.reset();
   }
 
-  await rotateDb(
-    `${config.dataDir}/browserstack.db`,
-    (row) => new Date(row.createdAt) < last1Month
-  );
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
 
-  // filter out rows older than 7 days ago
+  // filter out rows older than 1 month
   await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
@@ -271,11 +260,11 @@ const collectBitrise = async (options: CollectorOptions) => {
     ).data.find((b) => b.status !== CANCELLED);
   }
 
-  // collect Status
+  const dbPath = `${config.dataDir}/bitrise.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/bitrise.db`,
+    path: dbPath,
     logger,
-    compress: true
+    compress: true,
   });
 
   await db.init();
@@ -284,12 +273,9 @@ const collectBitrise = async (options: CollectorOptions) => {
     await db.reset();
   }
 
-  await rotateDb(
-    `${config.dataDir}/bitrise.db`,
-    (row) => new Date(row.createdAt) < last1Month
-  );
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
 
-  // filter out rows older than 7 days ago
+  // filter out rows older than 1 month
   await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
@@ -329,10 +315,12 @@ const collectCodeMagic = async (options: CollectorOptions) => {
     CodeMagicRecentBuilds,
     CodeMagicBuildQueueSize,
   };
+
+  const dbPath = `${config.dataDir}/codemagic.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/codemagic.db`,
+    path: dbPath,
     logger,
-    compress: true
+    compress: true,
   });
 
   await db.init();
@@ -341,15 +329,57 @@ const collectCodeMagic = async (options: CollectorOptions) => {
     await db.reset();
   }
 
-  await rotateDb(
-    `${config.dataDir}/codemagic.db`,
-    (row) => new Date(row.createdAt) < last1Month
-  );
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
 
-  // filter out rows older than 7 days ago
+  // filter out rows older than 1 month
   await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
+};
+
+const collectCodeQuality = async (options: CollectorOptions) => {
+  const { config } = options;
+  const bitriseHelperInstance = BitriseHelper({
+    logger,
+    defaultHeaders: {
+      authorization: `token ${config.collector.Bitrise.token}`,
+    },
+  });
+
+  const { data } = await bitriseHelperInstance.getBuildsByAppSlug(
+    config.collector.Bitrise.appSlug,
+    { workflow: 'code_quality' }
+  );
+  const lastBuildSlug = data[0].slug;
+  const artifactName = 'quality_report.json';
+  const downloadPath = `${config.dataDir}/${artifactName}`;
+  await bitriseHelperInstance.downloadBuildArtifactByName(
+    config.collector.Bitrise.appSlug,
+    lastBuildSlug,
+    artifactName,
+    downloadPath
+  );
+
+  const row = {
+    createdAt,
+    report: await FileHelper.readJSONFile(downloadPath),
+  };
+
+
+  for (const entry of row.report) {
+    for (const platform of entry) {
+      if (!isEmpty(platform.artifactName)) {
+        await bitriseHelperInstance.downloadBuildArtifactByName(
+          config.collector.Bitrise.appSlug,
+          lastBuildSlug,
+          platform.artifactName,
+          `${config.dataDir}/${platform.artifactName}`
+        );
+      }
+    }
+  }
+
+  await FileHelper.writeFile(row, downloadPath);
 };
 
 export default async (options: CollectorOptions) => {
@@ -369,7 +399,8 @@ export default async (options: CollectorOptions) => {
   );
 
   try {
-    // collect data
+    await collectCodeQuality(options);
+
     await collectStatus(options);
 
     config.collector.Bitrise.metrics && (await collectBitrise(options));

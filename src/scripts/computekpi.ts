@@ -33,7 +33,7 @@ export default async (config: Config) => {
     const db = simpleDb<Partial<any>>({
       path: `${config.dataDir}/kpie2e.db`,
       logger,
-      compress: true
+      compress: true,
     });
     await db.init();
     //await db.reset();

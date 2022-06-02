@@ -8,8 +8,9 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
+import jsonpack from 'jsonpack/main';
 import { get, isEmpty, last } from 'lodash';
-import jsonpack from 'jsonpack/main'
+
 import { createDailyNotificationID, getLastWeekDate } from '../lib/utils';
 import { Config, Severity } from '../types/config';
 
@@ -37,7 +38,9 @@ let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {
     FILES[filename] = last(
-      jsonpack.unpack((await FileHelper.readFile(`${CONFIG.dataDir}/${filename}`)).toString())
+      jsonpack.unpack(
+        (await FileHelper.readFile(`${CONFIG.dataDir}/${filename}`)).toString()
+      )
     )!;
   }
   return FILES[filename];
@@ -219,7 +222,7 @@ export default async (
   try {
     DB = simpleDb<Notification>({
       path: `${config.dataDir}/notifications.db`,
-      compress: true
+      compress: true,
     });
 
     CONFIG = config;
