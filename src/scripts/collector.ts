@@ -350,7 +350,7 @@ const collectCodeQuality = async (options: CollectorOptions) => {
     config.collector.Bitrise.appSlug,
     { workflow: 'code_quality' }
   );
-  const lastBuildSlug = data[0].slug;
+  const lastBuildSlug = data.find(s => s.status !== 0).slug;
   const artifactName = 'quality_report.json';
   const downloadPath = `${config.dataDir}/${artifactName}`;
   await bitriseHelperInstance.downloadBuildArtifactByName(
