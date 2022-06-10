@@ -18,10 +18,9 @@ import {
   teams,
 } from 'adash-ts-helper';
 import { isEmpty, omit } from 'lodash';
-
-import { getLast1MonthDate, getYesterdayDate } from '../lib/utils';
+import { extractVersions, getLast1MonthDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
-
+import fs from 'fs/promises'
 type Entry = {
   readonly createdAt: number;
 };
@@ -337,8 +336,33 @@ const collectCodeMagic = async (options: CollectorOptions) => {
   await db.commit();
 };
 
-const collectCodeQuality = async (options: CollectorOptions) => {
-  const { config } = options;
+const collectCodeQuality = async (options: CollectorOptions, version: string) => {
+  logger.info(`Collecting code Quality for ${version}`)
+
+  const { config, resetdb } = options;
+
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/codeQuality.json`,
+    logger,
+    compress: false,
+  });
+  await db.init()
+
+  if (resetdb) {
+    const codeQualityArtifacts = (
+      await fs.readdir(`${config.dataDir}`, { withFileTypes: true })
+    )
+      .filter((f) => !f.isDirectory() && f.name.startsWith('codeQualityArtifact'))
+      .map((f) => f.name);
+
+    for (const artifact of codeQualityArtifacts) {
+      await fs.unlink(`${config.dataDir}/${artifact}`)
+    }
+
+    await db.reset()
+    await db.commit()
+  }
+
   const bitriseHelperInstance = BitriseHelper({
     logger,
     defaultHeaders: {
@@ -348,7 +372,7 @@ const collectCodeQuality = async (options: CollectorOptions) => {
 
   const { data } = await bitriseHelperInstance.getBuildsByAppSlug(
     config.collector.Bitrise.appSlug,
-    { workflow: 'code_quality' }
+    { workflow: 'code_quality', branch: `master/${version}` }
   );
   const lastBuildSlug = data.find(s => s.status !== 0).slug;
   const artifactName = 'quality_report.json';
@@ -362,25 +386,43 @@ const collectCodeQuality = async (options: CollectorOptions) => {
 
   const row = {
     createdAt,
+    version,
     report: await FileHelper.readJSONFile(downloadPath),
   };
 
-
-  for (const entry of row.report) {
-    for (const platform of entry) {
-      if (!isEmpty(platform.artifactName)) {
-        await bitriseHelperInstance.downloadBuildArtifactByName(
-          config.collector.Bitrise.appSlug,
-          lastBuildSlug,
-          platform.artifactName,
-          `${config.dataDir}/${platform.artifactName}`
-        );
+  try {
+    for (const [_, entry] of Object.entries(row.report)) {
+      for (const [_, platform] of Object.entries(entry)) {
+        if (!isEmpty(platform.artifactName)) {
+          await bitriseHelperInstance.downloadBuildArtifactByName(
+            config.collector.Bitrise.appSlug,
+            lastBuildSlug,
+            platform.artifactName,
+            `${config.dataDir}/codeQualityArtifact${version}_${platform.artifactName}`
+          );
+        }
       }
     }
+  } catch (e) {
+    logger.error("Cannot download artifact", e)
   }
 
-  await FileHelper.writeFile(row, downloadPath);
+  db.insert(row)
+  db.commit()
 };
+
+async function getVersionsFromGitlab(options: CollectorOptions) {
+  const { config } = options
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/gitlab.db`,
+    logger,
+    compress: true,
+  });
+
+  await db.init();
+
+  return extractVersions(db.data())
+}
 
 export default async (options: CollectorOptions) => {
   const { config } = options;
@@ -399,13 +441,20 @@ export default async (options: CollectorOptions) => {
   );
 
   try {
-    await collectCodeQuality(options);
+    if (config.collector.GitLab.metrics && config.collector.Bitrise.codeQuality) {
+      await collectGitLab(options)
+
+      const versions = await getVersionsFromGitlab(options)
+      for (const version of versions) {
+        try {
+          await collectCodeQuality({ ...options, resetdb: version === versions[0] }, version);
+        } catch (e) { }
+      }
+    }
 
     await collectStatus(options);
 
     config.collector.Bitrise.metrics && (await collectBitrise(options));
-
-    config.collector.GitLab.metrics && (await collectGitLab(options));
 
     config.collector.CodeMagic.metrics && (await collectCodeMagic(options));
 

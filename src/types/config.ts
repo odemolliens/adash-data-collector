@@ -60,6 +60,7 @@ export type Config = {
     readonly Bitrise?: {
       readonly status: boolean;
       readonly metrics: boolean;
+      readonly codeQuality: boolean;
       readonly appSlug: string;
       readonly token: string;
       readonly workflows: readonly string[];
