@@ -8,6 +8,7 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
+import jsonpack from 'jsonpack/main';
 import { get, isEmpty, last } from 'lodash';
 
 import { createDailyNotificationID, getLastWeekDate } from '../lib/utils';
@@ -37,7 +38,9 @@ let adashGitlabHelper: GitLabHelperModule.IGitLabHelper;
 const getDataFromFile = async (filename: string) => {
   if (isEmpty(FILES[filename])) {
     FILES[filename] = last(
-      await FileHelper.readJSONFile(`${CONFIG.dataDir}/${filename}`)
+      jsonpack.unpack(
+        (await FileHelper.readFile(`${CONFIG.dataDir}/${filename}`)).toString()
+      )
     )!;
   }
   return FILES[filename];
@@ -218,7 +221,8 @@ export default async (
 
   try {
     DB = simpleDb<Notification>({
-      path: `${config.dataDir}/notifications.json`,
+      path: `${config.dataDir}/notifications.db`,
+      compress: true,
     });
 
     CONFIG = config;
@@ -237,8 +241,8 @@ export default async (
     await DB.filter((row) => new Date(row.createdAt) >= lastWeekDate);
     await DB.commit();
     await FileHelper.writeFile(
-      config.notificator.thresholds,
-      `${config.dataDir}/thresholds.json`
+      jsonpack.pack(config.notificator.thresholds),
+      `${config.dataDir}/thresholds.db`
     );
   } catch (e) {
     logger.error('An errore occurred:', e.message);

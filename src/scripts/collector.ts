@@ -5,6 +5,7 @@ import {
   BrowserStackStatusHelper,
   CocoaPodsStatusHelper,
   CodeMagicHelper,
+  FileHelper,
   GitLabHelper,
   GitLabHelperModule,
   GitlabStatusHelper,
@@ -16,21 +17,27 @@ import {
   slack,
   teams,
 } from 'adash-ts-helper';
-import { omit } from 'lodash';
-
-import { getLast6MonthsDate, getYesterdayDate } from '../lib/utils';
+import { isEmpty, omit } from 'lodash';
+import { extractVersions, getLast1MonthDate, getYesterdayDate } from '../lib/utils';
 import { Config } from '../types/config';
-
+import fs from 'fs/promises'
 type Entry = {
   readonly createdAt: number;
 };
 
 const CANCELLED = 4;
 const logger = simpleLogger();
-const last6Months = getLast6MonthsDate();
+const last1Month = getLast1MonthDate();
 const createdAt = Date.now();
 
-const collectStatus = async (config: Config) => {
+export type CollectorOptions = {
+  readonly config: Config;
+  readonly resetdb?: boolean;
+};
+
+const collectStatus = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
+
   const row = {
     createdAt,
   };
@@ -85,21 +92,51 @@ const collectStatus = async (config: Config) => {
     };
   }
 
-  // collect Status
+  const dbPath = `${config.dataDir}/status.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/status.json`,
+    path: dbPath,
     logger,
+    compress: true,
   });
-  await db.init();
-  //await db.reset();
 
-  // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.init();
+
+  if (resetdb) {
+    await db.reset();
+  }
+
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
+
+  // filter out rows older than 1 month
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
 
-const collectGitLab = async (config: Config) => {
+async function rotateDb(dbPath: string, filterFn: (row: any) => void) {
+  const db = simpleDb<Partial<Entry>>({
+    path: dbPath,
+    logger,
+    compress: true,
+  });
+
+  await db.init();
+
+  const filtered = db.data().filter(filterFn);
+  const dbBkp = simpleDb<Partial<Entry>>({
+    path: `${dbPath.replace(
+      '.db',
+      ''
+    )}_${last1Month.getMonth()}-${last1Month.getFullYear()}.bkp.db`,
+  });
+  await dbBkp.init();
+  await dbBkp.insertAll(filtered);
+  await dbBkp.commit();
+}
+
+const collectGitLab = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
+
   const gitlabHelper = GitLabHelper({
     projectId: config.collector.GitLab.projectId,
     defaultHeaders: {
@@ -109,41 +146,58 @@ const collectGitLab = async (config: Config) => {
 
   const GitLabOpenMergeRequests = await gitlabHelper.getMergeRequests({
     state: GitLabHelperModule.MERGE_REQUEST_STATE_OPENED,
+    per_page: 100,
   });
 
   const GitLabClosedMergeRequests = await gitlabHelper.getMergeRequests({
     state: GitLabHelperModule.MERGE_REQUEST_STATE_CLOSED,
     updated_after: getYesterdayDate(),
+    per_page: 100,
   });
+
+  const GitlabPipelineQueue = await gitlabHelper.getPipelineQueue({
+    per_page: 100,
+  });
+  const GitlabJobQueue = await gitlabHelper.getJobQueue();
 
   const row = {
     createdAt,
-    GitlabPipelineQueue: await gitlabHelper.getPipelineQueue(),
-    GitlabPipelineQueueSize: (await gitlabHelper.getPipelineQueue()).length,
+    GitlabPipelineQueue,
+    GitlabPipelineQueueSize: GitlabPipelineQueue.length,
     GitlabPipelineSchedules: await gitlabHelper.getPipelineSchedules(),
-    GitlabJobQueue: await gitlabHelper.getJobQueue(),
-    GitlabJobQueueSize: (await gitlabHelper.getJobQueue()).length,
+    GitlabJobQueue,
+    GitlabJobQueueSize: GitlabJobQueue.length,
     GitLabOpenMergeRequests,
     GitlabOpenMergeRequestsCount: GitLabOpenMergeRequests.length,
     GitLabClosedMergeRequests,
     GitlabClosedMergeRequestsCount: GitLabClosedMergeRequests.length,
   };
 
-  // collect Status
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/gitlab.json`,
+    path: `${config.dataDir}/gitlab.db`,
     logger,
+    compress: true,
   });
-  await db.init();
-  //await db.reset();
 
-  // filter out rows older than 6 months ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.init();
+
+  if (resetdb) {
+    await db.reset();
+  }
+
+  await rotateDb(
+    `${config.dataDir}/gitlab.db`,
+    (row) => new Date(row.createdAt) < last1Month
+  );
+
+  // filter out rows older than 1 month
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
 
-const collectBrowserStack = async (config: Config) => {
+const collectBrowserStack = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
   const [username, password] = config.collector.BrowserStack.token.split(':');
   const browserstackHelperInstance = BrowserStackHelper({
     auth: {
@@ -159,21 +213,29 @@ const collectBrowserStack = async (config: Config) => {
     ).slice(0, 15), // last 15 recent builds
   };
 
-  // collect Status
+  const dbPath = `${config.dataDir}/browserstack.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/browserstack.json`,
+    path: dbPath,
     logger,
+    compress: true,
   });
-  await db.init();
-  //await db.reset()
 
-  // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.init();
+
+  if (resetdb) {
+    await db.reset();
+  }
+
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
+
+  // filter out rows older than 1 month
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
 
-const collectBitrise = async (config: Config) => {
+const collectBitrise = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
   const bitriseHelperInstance = BitriseHelper({
     defaultHeaders: {
       authorization: `token ${config.collector.Bitrise.token}`,
@@ -197,21 +259,29 @@ const collectBitrise = async (config: Config) => {
     ).data.find((b) => b.status !== CANCELLED);
   }
 
-  // collect Status
+  const dbPath = `${config.dataDir}/bitrise.db`;
   const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/bitrise.json`,
+    path: dbPath,
     logger,
+    compress: true,
   });
-  await db.init();
-  //await db.reset();
 
-  // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  await db.init();
+
+  if (resetdb) {
+    await db.reset();
+  }
+
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
+
+  // filter out rows older than 1 month
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
 
-const collectCodeMagic = async (config: Config) => {
+const collectCodeMagic = async (options: CollectorOptions) => {
+  const { config, resetdb } = options;
   const codeMagicHelperInstance = CodeMagicHelper({
     defaultHeaders: { 'x-auth-token': config.collector.CodeMagic.token },
   });
@@ -233,9 +303,9 @@ const collectCodeMagic = async (config: Config) => {
       omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
     );
   const CodeMagicBuildQueueSize = CodeMagicBuildQueue.length;
-  const CodeMagicRecentBuilds = builds.map((b: any) =>
-    omit(b, ['config', 'artefacts', 'buildActions', 'commit'])
-  );
+  const CodeMagicRecentBuilds = builds
+    .map((b: any) => omit(b, ['config', 'artefacts', 'buildActions', 'commit']))
+    .slice(0, 15); // last 15 recent builds
 
   // collect CodeMagic metrics
   const row = {
@@ -244,57 +314,157 @@ const collectCodeMagic = async (config: Config) => {
     CodeMagicRecentBuilds,
     CodeMagicBuildQueueSize,
   };
-  const db = simpleDb<Partial<Entry>>({
-    path: `${config.dataDir}/codemagic.json`,
-    logger,
-  });
-  await db.init();
-  //await db.reset();
 
-  // filter out rows older than 7 days ago
-  await db.filter((row) => new Date(row.createdAt) >= last6Months);
+  const dbPath = `${config.dataDir}/codemagic.db`;
+  const db = simpleDb<Partial<Entry>>({
+    path: dbPath,
+    logger,
+    compress: true,
+  });
+
+  await db.init();
+
+  if (resetdb) {
+    await db.reset();
+  }
+
+  await rotateDb(dbPath, (row) => new Date(row.createdAt) < last1Month);
+
+  // filter out rows older than 1 month
+  await db.filter((row) => new Date(row.createdAt) >= last1Month);
   await db.insert(row);
   await db.commit();
 };
 
-type CollectorProps = {
-  readonly browserstack?: boolean;
-  readonly gitlab?: boolean;
-  readonly bitrise?: boolean;
-  readonly status?: boolean;
-  readonly codemagic?: boolean;
+const collectCodeQuality = async (options: CollectorOptions, version: string) => {
+  logger.info(`Collecting code Quality for ${version}`)
+
+  const { config, resetdb } = options;
+
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/codeQuality.json`,
+    logger,
+    compress: false,
+  });
+  await db.init()
+
+  if (resetdb) {
+    const codeQualityArtifacts = (
+      await fs.readdir(`${config.dataDir}`, { withFileTypes: true })
+    )
+      .filter((f) => !f.isDirectory() && f.name.startsWith('codeQualityArtifact'))
+      .map((f) => f.name);
+
+    for (const artifact of codeQualityArtifacts) {
+      await fs.unlink(`${config.dataDir}/${artifact}`)
+    }
+
+    await db.reset()
+    await db.commit()
+  }
+
+  const bitriseHelperInstance = BitriseHelper({
+    logger,
+    defaultHeaders: {
+      authorization: `token ${config.collector.Bitrise.token}`,
+    },
+  });
+
+  const { data } = await bitriseHelperInstance.getBuildsByAppSlug(
+    config.collector.Bitrise.appSlug,
+    { workflow: 'code_quality', branch: `master/${version}` }
+  );
+  const lastBuildSlug = data.find(s => s.status !== 0).slug;
+  const artifactName = 'quality_report.json';
+  const downloadPath = `${config.dataDir}/${artifactName}`;
+  await bitriseHelperInstance.downloadBuildArtifactByName(
+    config.collector.Bitrise.appSlug,
+    lastBuildSlug,
+    artifactName,
+    downloadPath
+  );
+
+  const row = {
+    createdAt,
+    version,
+    report: await FileHelper.readJSONFile(downloadPath),
+  };
+
+  try {
+    for (const [_, entry] of Object.entries(row.report)) {
+      for (const [_, platform] of Object.entries(entry)) {
+        if (!isEmpty(platform.artifactName)) {
+          await bitriseHelperInstance.downloadBuildArtifactByName(
+            config.collector.Bitrise.appSlug,
+            lastBuildSlug,
+            platform.artifactName,
+            `${config.dataDir}/codeQualityArtifact${version}_${platform.artifactName}`
+          );
+        }
+      }
+    }
+  } catch (e) {
+    logger.error("Cannot download artifact", e)
+  }
+
+  db.insert(row)
+  db.commit()
 };
 
-export default async (
-  config: Config,
-  { browserstack, gitlab, bitrise, status, codemagic }: CollectorProps
-) => {
+async function getVersionsFromGitlab(options: CollectorOptions) {
+  const { config } = options
+  const db = simpleDb<Partial<Entry>>({
+    path: `${config.dataDir}/gitlab.db`,
+    logger,
+    compress: true,
+  });
+
+  await db.init();
+
+  return extractVersions(db.data())
+}
+
+export default async (options: CollectorOptions) => {
+  const { config } = options;
   const { TEAMS_WEBHOOK_URL, SLACK_WEBHOOK_URL } = process.env;
   const logger = simpleLogger();
 
-  notificator.registerMultiple([
-    TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
-    SLACK_WEBHOOK_URL && slack({
-      webhookURL: SLACK_WEBHOOK_URL,
-      username: 'adash-data-collector script',
-    }),
-  ].filter(Boolean));
+  notificator.registerMultiple(
+    [
+      TEAMS_WEBHOOK_URL && teams({ webhookURL: TEAMS_WEBHOOK_URL }),
+      SLACK_WEBHOOK_URL &&
+      slack({
+        webhookURL: SLACK_WEBHOOK_URL,
+        username: 'adash-data-collector script',
+      }),
+    ].filter(Boolean)
+  );
 
   try {
-    // collect data
-    status && (await collectStatus(config));
-    bitrise &&
-      config.collector.Bitrise.metrics &&
-      (await collectBitrise(config));
-    gitlab && config.collector.GitLab.metrics && (await collectGitLab(config));
-    codemagic &&
-      config.collector.CodeMagic.metrics &&
-      (await collectCodeMagic(config));
-    browserstack &&
-      config.collector.BrowserStack.metrics &&
-      (await collectBrowserStack(config));
+    if (config.collector.GitLab.metrics && config.collector.Bitrise.codeQuality) {
+      await collectGitLab(options)
+
+      const versions = await getVersionsFromGitlab(options)
+      for (const version of versions) {
+        try {
+          await collectCodeQuality({ ...options, resetdb: version === versions[0] }, version);
+        } catch (e) { }
+      }
+    }
+
+    await collectStatus(options);
+
+    config.collector.Bitrise.metrics && (await collectBitrise(options));
+
+    config.collector.CodeMagic.metrics && (await collectCodeMagic(options));
+
+    config.collector.BrowserStack.metrics &&
+      (await collectBrowserStack(options));
   } catch (e) {
     logger.error('An errore occurred:', e.message);
-    await notificator.notify('Error', 'adash-data-collector: ' + e);
+    await notificator.notify(
+      'Error',
+      'adash-data-collector: ' + JSON.stringify(e)
+    );
   }
 };

@@ -1,9 +1,9 @@
 import { DebugHelper, FileHelper, simpleLogger } from 'adash-ts-helper';
 import cac from 'cac';
-import collector from './src/scripts/collector';
+import packageJson from './package.json';
+import collector, { CollectorOptions } from './src/scripts/collector';
 import computekpi from './src/scripts/computekpi';
 import notificator from './src/scripts/notificator';
-import packageJson from './package.json';
 
 const cli = cac();
 const logger = simpleLogger();
@@ -93,94 +93,14 @@ cli
 cli
   .command('collect', 'Collect ALL metrics')
   .option('--config <path>', 'Use config file')
+  .option('--resetdb', 'Remove the existing db entries')
   .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
+    options.config = await FileHelper.readJSONFile(
       options.config || './config.json'
     );
-    setupEnvs(config['envs']);
+    setupEnvs(options.config['envs']);
 
-    await collector(config, {
-      browserstack: true,
-      gitlab: true,
-      status: true,
-      bitrise: true,
-      codemagic: true,
-    });
-    logger.info('done');
-  });
-
-cli
-  .command('collect:browserstack', 'Collect BrowserStack metrics')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await collector(config, {
-      browserstack: true,
-    });
-    logger.info('done');
-  });
-
-cli
-  .command('collect:codemagic', 'Collect CodeMagic metrics')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await collector(config, {
-      codemagic: true,
-    });
-    logger.info('done');
-  });
-
-cli
-  .command('collect:gitlab', 'Collect GitLab metrics')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await collector(config, {
-      gitlab: true,
-    });
-    logger.info('done');
-  });
-
-cli
-  .command('collect:bitrise', 'Collect BitRise metrics')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await collector(config, {
-      bitrise: true,
-    });
-    logger.info('done');
-  });
-
-cli
-  .command('collect:status', 'Collect third-parties services metrics')
-  .option('--config <path>', 'Use config file')
-  .action(async (options: any) => {
-    const config = await FileHelper.readJSONFile(
-      options.config || './config.json'
-    );
-    setupEnvs(config['envs']);
-
-    await collector(config, {
-      status: true,
-    });
+    await collector(options as CollectorOptions);
     logger.info('done');
   });
 

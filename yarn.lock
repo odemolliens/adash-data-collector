@@ -100,6 +100,11 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
+"@types/jsonpack@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@types/jsonpack/-/jsonpack-1.1.1.tgz#d5d3e057c409db0d411dfa65183e0785806fd14b"
+  integrity sha512-phk55nFPFXddwxExpnshV2a40Gre+YbhDtAMBc0twoYVDqOOems5cZk1sOdWam+SAUuLbhBP39wuG0PkrAJjPg==
+
 "@types/lodash@^4.14.178":
   version "4.14.178"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.178.tgz#341f6d2247db528d4a13ddbb374bcdc80406f4f8"
@@ -190,10 +195,10 @@ acorn@^7.4.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
-adash-ts-helper@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/adash-ts-helper/-/adash-ts-helper-1.0.3.tgz#f07e5d4b38626e7f9f111589f72ad4c4a65344d2"
-  integrity sha512-EMsiFx0g1xM55aSNc0CUrfK63uAXeKF5ndoOv3Zg0rF8PIQA+plm7bZBlLMI8Bd5pXCyy3SIRHn/gVaVK9xQQA==
+adash-ts-helper@1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/adash-ts-helper/-/adash-ts-helper-1.0.8.tgz#53d441edb2819272c9a651442c0964dba4e9e330"
+  integrity sha512-R/nbo1C2iSfkT0fHTrYhY6xqT3UUeSW8VBLQAUu0VMcyKQP4Y5mGxIoMD224gQK2AAkJf3UFmeKINQkw7gFObw==
   dependencies:
     "@bitauth/libauth" "1.18.1"
     axios "0.26.0"
@@ -201,6 +206,7 @@ adash-ts-helper@1.0.3:
     cheerio "1.0.0-rc.10"
     colors "1.4.0"
     global-agent "3.0.0"
+    jsonpack "^1.1.5"
     lodash "^4.17.21"
     nock "13.1.4"
     simple-git "2.47.0"
@@ -1261,6 +1267,11 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
+jsonpack@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/jsonpack/-/jsonpack-1.1.5.tgz#d42b0dcfd91ac58ef3110f96d2c599404c3dc27c"
+  integrity sha1-1CsNz9kaxY7zEQ+W0sWZQEw9wnw=
+
 levn@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/levn/-/levn-0.4.1.tgz#ae4562c007473b932a6200d403268dd2fffc6ade"
@@ -1740,7 +1751,7 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-simple-git@2.47.0, simple-git@^2.47.0:
+simple-git@2.47.0:
   version "2.47.0"
   resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-2.47.0.tgz#9693b471de7911901f703b4c403fc3e8774cd9be"
   integrity sha512-+HfCpqPBEZTPWiW9fPdbiPJDslM22MLqrktfzNKyI2pWaJa6DhfNVx4Mds04KZzVv5vjC9/ksw3y5gVf8ECWDg==
