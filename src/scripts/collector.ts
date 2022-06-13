@@ -441,9 +441,9 @@ export default async (options: CollectorOptions) => {
   );
 
   try {
-    if (config.collector.GitLab.metrics && config.collector.Bitrise.codeQuality) {
-      await collectGitLab(options)
+    config.collector.GitLab.metrics && await collectGitLab(options)
 
+    if (config.collector.GitLab.metrics && config.collector.Bitrise.codeQuality) {
       const versions = await getVersionsFromGitlab(options)
       for (const version of versions) {
         try {
